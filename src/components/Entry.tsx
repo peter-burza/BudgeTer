@@ -11,7 +11,7 @@ import { useTransactions } from '@/context/TransactionsContext'
 import { Currency } from '@/types'
 import { getCurrentDate, saveTransaction } from '@/utils'
 import { useAuth } from '@/context/AuthContext'
-import { CURRENCIES } from "@/utils/constants"
+import { CURRENCIES } from '@/utils/constants'
 
 interface EntryProps {
   // saveTransaction: (transaction: Transaction) => void
@@ -23,15 +23,20 @@ export function handleDisplayZero(amount: number): string {
   return amount === 0 ? '' : amount.toString()
 }
 
-export function toBaseCurrency(amount: number, currencyCode: string, rate: number): number {
+export function toBaseCurrency(
+  amount: number,
+  currencyCode: string,
+  rate: number
+): number {
   if (!rate) throw new Error(`Unknown currency: ${currencyCode}`)
   return amount / rate // divide to go from that currency to EUR
 }
 
-export function returnSignature(...parts: (string | number | TrType | Category)[]): string {
-  return parts.join('|');
+export function returnSignature(
+  ...parts: (string | number | TrType | Category)[]
+): string {
+  return parts.join('|')
 }
-
 
 const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
   const { currentUser } = useAuth()
@@ -50,8 +55,14 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
   const [dontAskAgain, setDontAskAgain] = useState<boolean>(false)
 
   const cantAddEntry: boolean | undefined = typedAmount === 0 ? true : false
-  const trSignatureStructure = [typedAmount, type, category, description, date, newTrCurrency.code]
-
+  const trSignatureStructure = [
+    typedAmount,
+    type,
+    category,
+    description,
+    date,
+    newTrCurrency.code
+  ]
 
   function resetDefaultValues() {
     setTypedAmount(0)
@@ -85,7 +96,7 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
   }
 
   function handleSetCurrency(selectedCurrCode: string): void {
-    setNewTrCurrency(CURRENCIES[selectedCurrCode]);
+    setNewTrCurrency(CURRENCIES[selectedCurrCode])
   }
 
   function handleSaveTr() {
@@ -98,26 +109,31 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
   }
 
   function saveTr() {
-    if (!currentUser) throw new Error('User is not authenticated');
-    saveTransaction({
-      id: crypto.randomUUID(),
-      signature: returnSignature(...trSignatureStructure),
-      origAmount: typedAmount,
-      baseAmount: (
-        newTrCurrency === baseCurrency
-          ? typedAmount
-          : toBaseCurrency(typedAmount, newTrCurrency.code, rates[newTrCurrency.code])
-      ),
-      currency: newTrCurrency,
-      type: type,
-      date: date,
-      category: category,
-      description: description,
-      exchangeRate: rates[newTrCurrency.code]
-    },
+    if (!currentUser) throw new Error('User is not authenticated')
+    saveTransaction(
+      {
+        id: crypto.randomUUID(),
+        signature: returnSignature(...trSignatureStructure),
+        origAmount: typedAmount,
+        baseAmount:
+          newTrCurrency === baseCurrency
+            ? typedAmount
+            : toBaseCurrency(
+                typedAmount,
+                newTrCurrency.code,
+                rates[newTrCurrency.code]
+              ),
+        currency: newTrCurrency,
+        type: type,
+        date: date,
+        category: category,
+        description: description,
+        exchangeRate: rates[newTrCurrency.code]
+      },
       currentUser.uid,
       setTransactions,
-      setIsLoading)
+      setIsLoading
+    )
     resetDefaultValues()
   }
 
@@ -130,28 +146,37 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
     setShowDuplicateTRQ(!showDuplicateTrQ)
   }
 
-
   useEffect(() => {
     setNewTrCurrency(selectedCurrency)
   }, [selectedCurrency])
 
   return (
     <>
-      <Modal onClose={toggleShowDuplicateTrQ} isOpen={showDuplicateTrQ} onConfirm={saveDuplicateTR}>
-        <p className='px-5 pt-2'>You are trying to add a duplicate transaction.</p>
+      <Modal
+        onClose={toggleShowDuplicateTrQ}
+        isOpen={showDuplicateTrQ}
+        onConfirm={saveDuplicateTR}
+      >
+        <p className="px-5 pt-2">
+          You are trying to add a duplicate transaction.
+        </p>
         <div className="flex justify-evenly gap-1 w-full -mb-2.5">
           <button
             onClick={saveDuplicateTR}
-            className='secondary-btn !p-0.75 items-center'>
-            <p className='px-2'>Confirm</p>
+            className="secondary-btn !p-0.75 items-center"
+          >
+            <p className="px-2">Confirm</p>
           </button>
-          <button onClick={toggleShowDuplicateTrQ} className='secondary-btn !p-0.75 items-center'>
-            <p className='px-2'>Cancel</p>
+          <button
+            onClick={toggleShowDuplicateTrQ}
+            className="secondary-btn !p-0.75 items-center"
+          >
+            <p className="px-2">Cancel</p>
           </button>
         </div>
-        <div className='flex gap-2 w-full'>
+        <div className="flex gap-2 w-full">
           <input
-            className='max-w-4'
+            className="max-w-4"
             type="checkbox"
             checked={dontAskAgain}
             onChange={(e) => setDontAskAgain(e.target.checked)}
@@ -159,7 +184,6 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
           <p>Don&apos;t ask again</p>
         </div>
       </Modal>
-
 
       <div
         id="transaction-entry"
@@ -229,7 +253,7 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
         </div>
 
         <div className="flex flex-col gap-1 max-w-[232px] w-full">
-          <p className="-mb-2">Date:</p>
+          <p>Date:</p>
           <ResponsiveDatePicker setTransactionDate={handleSetDate} />
         </div>
 
