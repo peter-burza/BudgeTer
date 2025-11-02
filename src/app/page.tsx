@@ -12,10 +12,11 @@ import { useTransactions } from "@/context/TransactionsContext"
 import { areTransactionSetsEqual, processExpTransactions } from "@/utils"
 import { useAppStore } from "@/context/AppStore"
 import { useExpTransactionsStore } from "@/context/ExpTransactionsStore"
+import RegistrationReminder from "@/components/ui/RegistrationReminder"
 
 export default function Dashboard() {
-  const { currentUser } = useAuth()
-  const { transactions, setTransactions } = useTransactions()
+  const { currentUser, firstLogin } = useAuth()
+  const { transactions, setTransactions, saveUnloggedTransactions } = useTransactions()
   const { expTransactions, setExpTransactions } = useExpTransactionsStore()
   const screenWidth = useAppStore((state) => state.screenWidth)
   const rates = useCurrencyStore((state) => state.rates)
@@ -120,30 +121,34 @@ export default function Dashboard() {
 
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser) return
+
+    if (firstLogin) {
+      saveUnloggedTransactions(currentUser.uid)
+    }
 
     async function fetchAll() {
-      setIsLoading(true);
+      setIsLoading(true)
       try {
-        fetchUserSettings(currentUser);
-        await fetchTransactions();
-        await fetchExpTransactions(); // ✅ wait for this to finish
+        fetchUserSettings(currentUser)
+        await fetchTransactions()
+        await fetchExpTransactions() // ✅ wait for this to finish
 
         // ✅ Now run processExpTransactions
         await processExpTransactions(useExpTransactionsStore.getState().expTransactions, currentUser, setTransactions, setIsLoading, rates)
       } catch (error: unknown) {
         if (error instanceof Error) console.log(error.message)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
     }
 
-    fetchAll();
-  }, [currentUser]);
+    fetchAll()
+  }, [currentUser])
 
   // Fetch rates on app startup
   useEffect(() => {
-    console.log('fetching rates');
+    console.log('fetching rates')
 
     fetchRates()
   }, [fetchRates])
@@ -162,6 +167,12 @@ export default function Dashboard() {
         deleteTransaction={deleteTransaction}
         screenWidth={screenWidth}
         isLoading={isLoading}
+      />
+
+      {/* Track time to remind unlogged user with some data presaved */}
+      <RegistrationReminder
+        isUserLoggedIn={!!currentUser}
+        transactions={transactions}
       />
     </>
   )
