@@ -333,23 +333,23 @@ export function hasMultipleCurrencies(transactions: Transaction[]) {
 export async function saveTransaction(
   newTr: Transaction,
   currentUserUid: string,
-  setTransactions: (updater: (prev: Transaction[]) => Transaction[]) => void,
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
+  setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>,
+  setTransactions?: (updater: (prev: Transaction[]) => Transaction[]) => void
 ): Promise<void> {
-  if (!newTr.id || !newTr.baseAmount) return;
+  if (!newTr.id || !newTr.baseAmount) return
 
   try {
-    setIsLoading(true);
+    setIsLoading?.(true)
 
-    const trRef = doc(db, 'users', currentUserUid, 'transactions', newTr.id);
-    await setDoc(trRef, newTr);
+    const trRef = doc(db, 'users', currentUserUid, 'transactions', newTr.id)
+    await setDoc(trRef, newTr)
 
-    setTransactions((prev) => [...prev, newTr]);
-    console.log(`Transaction (id: ${newTr.id}) saved successfully`);
+    setTransactions?.((prev) => [...prev, newTr])
+    console.log(`Transaction (id: ${newTr.id}) saved successfully`)
   } catch (error: unknown) {
     if (error instanceof Error) console.log(error.message)
   } finally {
-    setIsLoading(false);
+    setIsLoading?.(false)
   }
 }
 
@@ -358,20 +358,20 @@ export function getMissingMonthsForExpTr(
   processedMonths: Set<string>
 ): string[] {
 
-  const start = dayjs(startDate).startOf('month');
-  const end = dayjs().subtract(1, 'month').startOf('month'); // 👈 previous month
+  const start = dayjs(startDate).startOf('month')
+  const end = dayjs().subtract(1, 'month').startOf('month') // 👈 previous month
 
-  const missingMonths: string[] = [];
-  let current = start;
+  const missingMonths: string[] = []
+  let current = start
 
   while (current.isBefore(end) || current.isSame(end)) {
-    const monthKey = current.format('YYYY-MM');
+    const monthKey = current.format('YYYY-MM')
     if (!processedMonths.has(monthKey)) {
-      missingMonths.push(monthKey);
+      missingMonths.push(monthKey)
     }
-    current = current.add(1, 'month');
+    current = current.add(1, 'month')
   }
-  return missingMonths;
+  return missingMonths
 }
 
 async function updateExpTransactionField(
@@ -380,15 +380,15 @@ async function updateExpTransactionField(
   fieldKey: string,
   newValue: string
 ) {
-  const transactionRef = doc(db, "users", userId, "expTransactions", transactionId);
+  const transactionRef = doc(db, "users", userId, "expTransactions", transactionId)
 
   try {
     await updateDoc(transactionRef, {
       [fieldKey]: arrayUnion(newValue),
-    });
-    console.log(`Updated ${fieldKey} in expTransaction ${transactionId}`);
+    })
+    console.log(`Updated ${fieldKey} in expTransaction ${transactionId}`)
   } catch (error) {
-    console.error("Error updating expTransaction:", error);
+    console.error("Error updating expTransaction:", error)
   }
 }
 
@@ -399,19 +399,19 @@ export async function processExpTransactions(
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
   rates: Rates
 ) {
-  if (!currentUser) throw new Error('User is not authenticated');
+  if (!currentUser) throw new Error('User is not authenticated')
   // const rates = useCurrencyStore.getState().rates
   const currentDayOfMonth = dayjs().date()
   // console.log(expTransactions);
 
   expTransactions.forEach((expTr) => {
     // check if the expTr was made for every month till its startAt month
-    const processedMonths = new Set(expTr.processedMonths);
+    const processedMonths = new Set(expTr.processedMonths)
     const unprocessedMonths = getMissingMonthsForExpTr(expTr.startDate, processedMonths)
 
     if (unprocessedMonths.length > 0) {
       unprocessedMonths.map((month) => {
-        const fullDate = `${month}-${expTr.payDay.toString().padStart(2, '0')}`;
+        const fullDate = `${month}-${expTr.payDay.toString().padStart(2, '0')}`
         saveTransaction(
           {
             id: crypto.randomUUID(),
@@ -426,15 +426,15 @@ export async function processExpTransactions(
             exchangeRate: rates[expTr.currency.code]
           },
           currentUser.uid,
-          setTransactions,
-          setIsLoading
+          setIsLoading,
+          setTransactions
         )
         // Add month to the processedMonths array
         if (expTr.id) {
           updateExpTransactionField(currentUser.uid, expTr.id, 'processedMonths', month)
           expTr.processedMonths.push(month)
-          console.log(month + ' added to processedMonths for expTr (' + expTr.id + ')');
-        } else console.log('expTr.id is not available');
+          console.log(month + ' added to processedMonths for expTr (' + expTr.id + ')')
+        } else console.log('expTr.id is not available')
       })
       console.log('expTr (' + expTr.id + ') has been processed for: ' + unprocessedMonths)
     }
@@ -462,15 +462,16 @@ export async function processExpTransactions(
           exchangeRate: rates[expTr.currency.code]
         },
         currentUser.uid,
-        setTransactions,
-        setIsLoading
+        setIsLoading,
+        setTransactions
       )
       // Add month to the processedMonths array
       if (expTr.id) {
         updateExpTransactionField(currentUser.uid, expTr.id, 'processedMonths', currentMonth)
         expTr.processedMonths.push(currentMonth)
-        console.log(currentMonth + ' added to processedMonths for expTr (' + expTr.id + ')');
-      } else console.log('expTr.id is not available');
+        console.log(currentMonth + ' added to processedMonths for expTr (' + expTr.id + ')')
+      } else console.log('expTr.id is not available')
     }
   })
 }
+

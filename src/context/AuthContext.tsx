@@ -8,7 +8,8 @@ import {
   signInWithPopup,
   signOut,
   User,
-  UserCredential
+  UserCredential,
+  getAdditionalUserInfo
 } from 'firebase/auth'
 import {
   createContext,
@@ -26,6 +27,7 @@ interface AuthContextType {
   isLoggedIn: boolean
   signInWithGoogle: () => Promise<UserCredential>
   logout: () => Promise<void>
+  firstLogin: boolean
 }
 
 // Create the context with a default value
@@ -48,16 +50,33 @@ interface AuthProviderProps {
 // Provider component
 export default function AuthProvider({ children }: AuthProviderProps) {
   const setHasFetchedUserSettings = useSettingsStore(state => state.setHasFetchedUserSettings)
+
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true)
+  const [firstLogin, setFirstLogin] = useState<boolean>(false)
 
   const isLoggedIn = currentUser ? true : false
 
   const signInWithGoogle = async () => {
     setIsLoadingUser(true)
     const provider = await new GoogleAuthProvider()
+
+    // Always show the "choose an account" popup
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    })
+
+    const result = await signInWithPopup(auth, provider)
+
+    const isNewUser = getAdditionalUserInfo(result)?.isNewUser ?? false
+    
+    // First time logged in
+    if (isNewUser) {
+      setFirstLogin(true)
+    }
+
     setIsLoadingUser(false)
-    return signInWithPopup(auth, provider)
+    return result
   }
 
   const logout = async () => {
@@ -91,7 +110,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     isLoadingUser,
     isLoggedIn,
     signInWithGoogle,
-    logout
+    logout,
+    firstLogin
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

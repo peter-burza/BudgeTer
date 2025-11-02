@@ -2,6 +2,7 @@
 
 import { Transaction } from "@/interfaces"
 import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useMemo, useState } from "react"
+import { saveTransaction } from "@/utils"
 
 
 type TransactionsContextType = {
@@ -9,6 +10,7 @@ type TransactionsContextType = {
     setTransactions: Dispatch<SetStateAction<Transaction[]>>
     clearTransactions: () => void
     isDuplicate: (id: string) => boolean
+    saveUnloggedTransactions: (userId: string) => void
 }
 
 const TransactionsContext = createContext<TransactionsContextType | undefined>(undefined)
@@ -35,11 +37,21 @@ export default function TransactionsProvider({ children }: { children: ReactNode
         return trSignatures.has(signature)
     }
 
+    function saveUnloggedTransactions(userId: string) {
+        // If there is a record of any transactions before a registration of an user.
+        if (userId && transactions.length > 0) {
+            transactions.map((t) => {
+                saveTransaction(t, userId)
+            })
+        }
+    }
+
     const value: TransactionsContextType = {
         transactions,
         setTransactions,
         clearTransactions,
-        isDuplicate
+        isDuplicate,
+        saveUnloggedTransactions
     }
 
     return (
