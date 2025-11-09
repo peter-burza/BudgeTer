@@ -12,6 +12,8 @@ import { Currency } from '@/types'
 import { getCurrentDate, saveTransaction } from '@/utils'
 import { useAuth } from '@/context/AuthContext'
 import { CURRENCIES } from '@/utils/constants'
+import InputWithCurrency from './ui/InputWithCurrency'
+import SelectSmall from './ui/SelectSmall'
 
 interface EntryProps {
   // saveTransaction: (transaction: Transaction) => void
@@ -143,151 +145,130 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
       setIsLoading,
       setTransactions
     )
-resetDefaultValues()
+    resetDefaultValues()
   }
 
-function saveDuplicateTR() {
-  saveTr()
-  toggleShowDuplicateTrQ()
-}
+  function saveDuplicateTR() {
+    saveTr()
+    toggleShowDuplicateTrQ()
+  }
 
-function toggleShowDuplicateTrQ() {
-  setShowDuplicateTRQ(!showDuplicateTrQ)
-}
+  function toggleShowDuplicateTrQ() {
+    setShowDuplicateTRQ(!showDuplicateTrQ)
+  }
 
-useEffect(() => {
-  setNewTrCurrency(selectedCurrency)
-}, [selectedCurrency])
+  useEffect(() => {
+    setNewTrCurrency(selectedCurrency)
+  }, [selectedCurrency])
 
-return (
-  <>
-    <Modal
-      onClose={toggleShowDuplicateTrQ}
-      isOpen={showDuplicateTrQ}
-      onConfirm={saveDuplicateTR}
-    >
-      <p className="px-5 pt-2">
-        You are trying to add a duplicate transaction.
-      </p>
-      <div className="flex justify-evenly gap-1 w-full -mb-2.5">
-        <button
-          onClick={saveDuplicateTR}
-          className="secondary-btn !p-0.75 items-center"
-        >
-          <p className="px-2">Confirm</p>
-        </button>
-        <button
-          onClick={toggleShowDuplicateTrQ}
-          className="secondary-btn !p-0.75 items-center"
-        >
-          <p className="px-2">Cancel</p>
-        </button>
-      </div>
-      <div className="flex gap-2 w-full">
-        <input
-          className="max-w-4"
-          type="checkbox"
-          checked={dontAskAgain}
-          onChange={(e) => setDontAskAgain(e.target.checked)}
-        />
-        <p>Don&apos;t ask again</p>
-      </div>
-    </Modal>
-
-    <div
-      id="transaction-entry"
-      className="base-container"
-    >
-      <h3>New Entry</h3>
-      <div className="flex flex-col gap-1 max-w-[232px] w-full">
-        <p>Amount:</p>
-        <div className="group relative w-full">
-          <input
-            value={handleDisplayZero(typedAmount)}
-            onChange={(e) => handleSetAmount(e.target.value)}
-            type="number"
-            step="any"
-            placeholder="e.g. 4.99"
-            className="w-full pr-[70px] group-hover:!shadow-none" // leave space for the select
-          />
-          <select
-            id="currency_select"
-            value={newTrCurrency.code}
-            onChange={(e) => handleSetCurrency(e.target.value)}
-            className="absolute right-0 top-0 h-full !w-[68px] px-2 bg-transparent text-inherit cursor-pointer border-none !shadow-none text-right"
-          >
-            {Object.values(CURRENCIES).map((currency) => (
-              <option
-                key={currency.code}
-                value={currency.code}
-                title={`${currency.code}  -  ${currency.name}  -  ${currency.symbol}`}
-              >
-                {currency.code}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-1 max-w-[232px] w-full">
-        <p>Type:</p>
-        <select
-          value={type}
-          onChange={(e) => {
-            handleSetType(e.target.value as TrType)
-          }}
-        >
-          <option value={TrType.Income}>Income</option>
-          <option value={TrType.Expense}>Expense</option>
-        </select>
-      </div>
-
-      <div className="flex flex-col gap-1 max-w-[232px] w-full">
-        <p>Category:</p>
-        <select
-          value={category}
-          onChange={(e) => {
-            handleSetCategory(e.target.value as Category)
-          }}
-        >
-          {Object.values(Category).map((c, idx) => (
-            <option
-              key={idx}
-              value={c}
-            >
-              {c}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="flex flex-col gap-1 max-w-[232px] w-full">
-        <p>Date:</p>
-        <ResponsiveDatePicker setTransactionDate={handleSetDate} />
-      </div>
-
-      <div className="flex flex-col gap-1 max-w-[232px] w-full">
-        <p className="">Description:</p>
-        <textarea
-          onChange={(e) => {
-            handleSetDescription(e.target.value)
-          }}
-          className="bg-[var(--foreground)] text-[var(--background)] outline-0 p-2 px-3 rounded-sm"
-          placeholder="Transaction detail"
-        ></textarea>
-      </div>
-
-      <button
-        className="secondary-btn disabled:opacity-50"
-        disabled={cantAddEntry || isLoading}
-        title={cantAddEntry ? 'Please enter amount' : ''}
-        onClick={handleSaveTr}
+  return (
+    <>
+      <Modal
+        onClose={toggleShowDuplicateTrQ}
+        isOpen={showDuplicateTrQ}
+        onConfirm={saveDuplicateTR}
       >
-        <h5>{isLoading === true ? 'Loading...' : 'Add Transaction'}</h5>
-      </button>
-    </div>
-  </>
-)
+        <p className="px-5 pt-2">
+          You are trying to add a duplicate transaction.
+        </p>
+        <div className="flex justify-evenly gap-1 w-full -mb-2.5">
+          <button
+            onClick={saveDuplicateTR}
+            className="secondary-btn !p-0.75 items-center"
+          >
+            <p className="px-2">Confirm</p>
+          </button>
+          <button
+            onClick={toggleShowDuplicateTrQ}
+            className="secondary-btn !p-0.75 items-center"
+          >
+            <p className="px-2">Cancel</p>
+          </button>
+        </div>
+        <div className="flex gap-2 w-full">
+          <input
+            className="max-w-4"
+            type="checkbox"
+            checked={dontAskAgain}
+            onChange={(e) => setDontAskAgain(e.target.checked)}
+          />
+          <p>Don&apos;t ask again</p>
+        </div>
+      </Modal>
+
+      <div
+        id="transaction-entry"
+        className="base-container"
+      >
+        <h3>New Entry</h3>
+        <div className="flex flex-col gap-1 max-w-[232px] w-full">  
+          <InputWithCurrency
+            typedAmount={typedAmount}
+            handleDisplayZero={handleDisplayZero}
+            handleSetAmount={handleSetAmount}
+            newTrCurrency={newTrCurrency}
+            handleSetCurrency={handleSetCurrency}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1 max-w-[232px] w-full">
+          <SelectSmall
+            inputLabel="Type"
+            menuItems={Object.entries(TrType).map(([key, value]) => ({
+              label: key,
+              value: value,
+            }))}
+            value={type}
+            onChange={(e) => {
+              handleSetType(e)
+            }}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1 max-w-[232px] w-full">
+          <SelectSmall
+            inputLabel="Category"
+            menuItems={Object.entries(Category).map(([key, value]) => ({
+              label: key,
+              value: value,
+            }))}
+            value={category}
+            onChange={(e) => {
+              handleSetCategory(e)
+            }}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1 max-w-[232px] w-full">
+          <ResponsiveDatePicker 
+          
+            onChange={(e) => {
+              handleSetDate(e)
+            }} />
+        </div>
+
+        <div className="flex flex-col gap-1 max-w-[232px] w-full">
+          <p className="">Description:</p>
+          <textarea
+            onChange={(e) => {
+              handleSetDescription(e.target.value)
+            }}
+            className="bg-[var(--foreground)] text-[var(--background)] outline-0 p-2 px-3 rounded-sm"
+            placeholder="Transaction detail"
+          ></textarea>
+        </div>
+
+        <button
+          className="secondary-btn disabled:opacity-50"
+          disabled={cantAddEntry || isLoading}
+          title={cantAddEntry ? 'Please enter amount' : ''}
+          onClick={handleSaveTr}
+        >
+          <h5>{isLoading === true ? 'Loading...' : 'Add Transaction'}</h5>
+        </button>
+      </div>
+    </>
+  )
 }
 
 export default Entry
