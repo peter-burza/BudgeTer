@@ -41,8 +41,8 @@ const RegistrationReminder: React.FC<RegistrationReminderProps> = ({ isUserLogge
 
     return (
         <Modal isOpen={isRemindMsgShowed} onClose={() => setIsRemindMsgShowed(false)}>
-            <h3>Don't lose your data!</h3>
-            <p className='max-w-130'>To prevent losing your saved transactions, just sign up <button onClick={registerAndClose}><i className='text-sky-300 clickable'>here</i></button>, or by clicking the "<i>Sign in with Google</i>" button to save your data permanently.</p>
+            <h3>Don&apos;t lose your data!</h3>
+            <p className='max-w-130'>To prevent losing your saved transactions, just sign up <button onClick={registerAndClose}><i className='text-sky-300 clickable'>here</i></button>, or by clicking the &quot;<i>Sign in with Google</i>&quot; button to save your data permanently.</p>
         </Modal>
     )
 }

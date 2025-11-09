@@ -43,7 +43,7 @@ export default function Dashboard() {
       setIsLoading(true)
 
       const transactionRef = doc(db, "users", currentUser?.uid, "transactions", deleteTrId)
-      const removingTr = await deleteDoc(transactionRef)
+      await deleteDoc(transactionRef)
 
       const updatedTransactions = transactions.filter(t => (t.id !== deleteTrId))
       setTransactions(updatedTransactions)
