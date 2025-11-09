@@ -20,7 +20,10 @@ const RegistrationReminder: React.FC<RegistrationReminderProps> = ({ isUserLogge
     }
 
     useEffect(() => {
-        if (isUserLoggedIn || transactions.length <= 0) return
+        if (isUserLoggedIn || transactions.length <= 0) {
+            setIsRemindMsgShowed(false)
+            return
+        }
 
         if (transactions.length >= 5) {
             setIsRemindMsgShowed(true)
@@ -29,6 +32,7 @@ const RegistrationReminder: React.FC<RegistrationReminderProps> = ({ isUserLogge
         // Set a timer for 5 minutes
         const timer = setTimeout(() => {
             setIsRemindMsgShowed(true)
+            setIsRemindMsgShowed(false)
         }, 5 * 60 * 1000)
 
         // Cleanup if the component unmounts before 5 min
