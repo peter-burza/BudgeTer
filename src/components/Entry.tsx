@@ -13,6 +13,17 @@ import { getCurrentDate, saveTransaction } from '@/utils'
 import { useAuth } from '@/context/AuthContext'
 import { CURRENCIES } from '@/utils/constants'
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/ShadcnComponents/select"
+import { Label } from "@/components/ui/ShadcnComponents/label"
+import { Input } from './ui/ShadcnComponents/input'
+import { Textarea } from './ui/ShadcnComponents/textarea'
+
 interface EntryProps {
   // saveTransaction: (transaction: Transaction) => void
   isLoading: boolean
@@ -86,10 +97,21 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
     setCategory(value)
   }
 
+  useEffect(() => {
+    console.log(category);
+    
+  }, [category])
+
   function handleSetDate(value: dayjs.Dayjs): void {
     const dateOnly: string = value.format('YYYY-MM-DD')
     setDate(dateOnly)
   }
+
+  // function handleSetDate(value: Date | undefined): void {
+  //   if (!value) return
+  //   const convertedDate: string = value.toISOString().split("T")[0] // converts the date into YYY-MM-DD string format 
+  //   setDate(convertedDate)
+  // }
 
   function handleSetDescription(value: string): void {
     setDescription(value)
@@ -198,82 +220,83 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
         className="base-container"
       >
         <h3>New Entry</h3>
-        <div className="flex flex-col gap-1 max-w-[232px] w-full">
-          <p>Amount:</p>
+        <div className="flex flex-col gap-1.5 max-w-[232px] w-full">
+          <Label htmlFor="amount">Amount:</Label>
           <div className="group relative w-full">
-            <input
+            <Input
+              id="amount"
               value={handleDisplayZero(typedAmount)}
               onChange={(e) => handleSetAmount(e.target.value)}
               type="number"
               step="any"
               placeholder="e.g. 4.99"
-              className="w-full pr-[70px] group-hover:!shadow-none" // leave space for the select
+              className="w-full pr-[80px]" // leave space for the select and padding
             />
-            <select
-              id="currency_select"
-              value={newTrCurrency.code}
-              onChange={(e) => handleSetCurrency(e.target.value)}
-              className="absolute right-0 top-0 h-full !w-[68px] px-2 bg-transparent text-inherit cursor-pointer border-none !shadow-none text-right"
-            >
-              {Object.values(CURRENCIES).map((currency) => (
-                <option
-                  key={currency.code}
-                  value={currency.code}
-                  title={`${currency.code}  -  ${currency.name}  -  ${currency.symbol}`}
-                >
-                  {currency.code}
-                </option>
-              ))}
-            </select>
+            <div className="absolute right-0 top-0 h-full w-[80px]">
+              <Select
+                value={newTrCurrency.code}
+                onValueChange={(val: string) => handleSetCurrency(val)}
+              >
+                <SelectTrigger className="h-full w-full !bg-transparent !border-0 !shadow-none hover:!shadow-none focus:!shadow-none focus:!ring-0 pl-2 pr-3 text-right rounded-none rounded-r-lg !justify-end gap-2 [&_svg]:opacity-50">
+                  <SelectValue className="!justify-end" />
+                </SelectTrigger>
+                <SelectContent className="!min-w-[68px] w-auto max-w-[100px]">
+                  {Object.values(CURRENCIES).map((currency) => (
+                    <SelectItem
+                      key={currency.code}
+                      value={currency.code}
+                      title={`${currency.code}  -  ${currency.name}  -  ${currency.symbol}`}
+                      // className={currency.code === newTrCurrency.code ? "!bg-[var(--color-dark-blue)] !text-[var(--background)] data-[highlighted]:!bg-[var(--color-dark-blue)]" : ""}
+                    >
+                      {currency.code}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-1 max-w-[232px] w-full">
-          <p>Type:</p>
-          <select
-            value={type}
-            onChange={(e) => {
-              handleSetType(e.target.value as TrType)
-            }}
-          >
-            <option value={TrType.Income}>Income</option>
-            <option value={TrType.Expense}>Expense</option>
-          </select>
+        <div className="flex flex-col gap-2 max-w-[232px] w-full">
+          <Label htmlFor="type">Type:</Label>
+          <Select value={type} onValueChange={(val: TrType) => handleSetType(val)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={TrType.Income}>Income</SelectItem>
+              <SelectItem value={TrType.Expense}>Expense</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="flex flex-col gap-1 max-w-[232px] w-full">
-          <p>Category:</p>
-          <select
-            value={category}
-            onChange={(e) => {
-              handleSetCategory(e.target.value as Category)
-            }}
-          >
-            {Object.values(Category).map((c, idx) => (
-              <option
-                key={idx}
-                value={c}
-              >
-                {c}
-              </option>
-            ))}
-          </select>
+        <div className="flex flex-col gap-2 max-w-[232px] w-full">
+          <Label htmlFor="category">Category:</Label>
+          <Select value={category} onValueChange={(val: Category) => handleSetCategory(val)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.values(Category).map((c, idx) => (
+                <SelectItem key={idx} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="flex flex-col gap-1 max-w-[232px] w-full">
-          <p>Date:</p>
+        <div className="flex flex-col gap-2 max-w-[232px] w-full">
+          <Label htmlFor="date">Date:</Label>
           <ResponsiveDatePicker setTransactionDate={handleSetDate} />
         </div>
 
-        <div className="flex flex-col gap-1 max-w-[232px] w-full">
-          <p className="">Description:</p>
-          <textarea
-            onChange={(e) => {
-              handleSetDescription(e.target.value)
-            }}
-            className="bg-[var(--foreground)] text-[var(--background)] outline-0 p-2 px-3 rounded-sm"
-            placeholder="Transaction detail"
-          ></textarea>
+        <div className="flex flex-col gap-2 max-w-[232px] w-full">
+          <Label htmlFor="description">Description:</Label>
+          <Textarea
+            id="message"
+            placeholder="Transaction detail."
+            value={description}
+            handleSetDescription={handleSetDescription}
+          />
         </div>
 
         <button
@@ -284,7 +307,7 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
         >
           <h5>{isLoading === true ? 'Loading...' : 'Add Transaction'}</h5>
         </button>
-      </div>
+      </div >
     </>
   )
 }

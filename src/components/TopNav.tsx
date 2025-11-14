@@ -2,7 +2,7 @@
 
 import { useAuth } from '../context/AuthContext'
 import React from 'react'
-import DropdownMenu from './ui/DropdownMenu'
+import DropdownMenuComp from './ui/DropdownMenu'
 import { useRouter } from 'next/navigation'
 
 
@@ -20,7 +20,7 @@ export default function TopNav() {
         <h4>{currentUser ? ' - ' + currentUser?.displayName : ''}</h4>
       </div>
       {currentUser ? (
-        <DropdownMenu />
+        <DropdownMenuComp />
       ) : (
         <button
           onClick={signInWithGoogle}

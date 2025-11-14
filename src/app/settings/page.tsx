@@ -22,7 +22,7 @@ const SettingsPage = () => {
             <div id="settings" className="base-container">
                 <h3>App Settings</h3>
 
-                <div className="flex flex-col gap-1 max-w-[232px] w-full">
+                <div className="flex flex-col gap-1 w-fit">
                     <p>Select Currency:</p>
                     <CurrencySelector />
                 </div>

@@ -9,6 +9,7 @@ import ExpenseBreakdown from "./ExpenseBreakdown"
 import { Currency } from "@/types"
 import { useCurrencyStore } from "@/context/CurrencyState"
 import Summary from "./Summary"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/ShadcnComponents/select"
 
 interface TransactionHistoryPtops {
     transactions: Transaction[]
@@ -124,41 +125,40 @@ const TransactionHistory: React.FC<TransactionHistoryPtops> = ({ transactions, s
             <h3>Transactions History</h3>
             <div className="flex justify-between gap-3 sm:gap-6">
                 <div className="flex flex-wrap gap-2">
-                    <select
-                        value={selectedYear}
-                        onChange={(e) => setSelectedYear(e.target.value)}
-                        className="max-h-7.5 !p-1"
-                        name="year-selection"
-                        id="year-selection"
-                    >
-                        {years.map((year, idx) => (
-                            <option key={idx} value={year}>
-                                {year === OVERALL ? 'Overall' : year}
-                            </option>
-                        ))}
-                    </select>
+                    <Select value={selectedYear} onValueChange={(val: string) => setSelectedYear(val)}>
+                        <SelectTrigger className="!w-23 !h-8 !p-2">
+                            <SelectValue placeholder="Year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {years.map((year, idx) => (
+                                <SelectItem key={idx} value={year}>
+                                    {year === OVERALL ? 'Overall' : year}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
 
-                    <select
-                        value={selectedMonth}
-                        onChange={(e) => setSelectedMonth(e.target.value)}
-                        className="max-h-7.5 !p-1"
-                        name="month-selection"
-                        id="month-selection"
-                    >
-                        <option value={OVERALL}>Overall</option>
-                        <option value="january">January</option>
-                        <option value="february">February</option>
-                        <option value="march">March</option>
-                        <option value="april">April</option>
-                        <option value="may">May</option>
-                        <option value="june">June</option>
-                        <option value="july">July</option>
-                        <option value="august">August</option>
-                        <option value="september">September</option>
-                        <option value="october">October</option>
-                        <option value="november">November</option>
-                        <option value="december">December</option>
-                    </select>
+                    <Select value={selectedMonth} onValueChange={(val: string) => setSelectedMonth(val)}>
+                        <SelectTrigger className="!w-30 !h-8 !p-2">
+                            <SelectValue placeholder="Month" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={OVERALL}>Overall</SelectItem>
+                            <SelectItem value="january">January</SelectItem>
+                            <SelectItem value="february">February</SelectItem>
+                            <SelectItem value="march">March</SelectItem>
+                            <SelectItem value="april">April</SelectItem>
+                            <SelectItem value="may">May</SelectItem>
+                            <SelectItem value="june">June</SelectItem>
+                            <SelectItem value="july">July</SelectItem>
+                            <SelectItem value="august">August</SelectItem>
+                            <SelectItem value="september">September</SelectItem>
+                            <SelectItem value="october">October</SelectItem>
+                            <SelectItem value="november">November</SelectItem>
+                            <SelectItem value="december">December</SelectItem>
+
+                        </SelectContent>
+                    </Select>
                 </div>
 
                 <div
