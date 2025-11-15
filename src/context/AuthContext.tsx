@@ -1,31 +1,27 @@
 'use client'
 
-import { auth } from '../../firebase'
-
-import {
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut,
-  User,
-  UserCredential,
-  getAdditionalUserInfo
-} from 'firebase/auth'
 import {
   createContext,
   useContext,
-  useEffect,
   useState,
   ReactNode
 } from 'react'
 import { useSettingsStore } from './SettingsState'
 
+// Mock User type (simplified)
+interface MockUser {
+  uid: string
+  email: string
+  displayName: string
+  photoURL: string | null
+}
+
 // Define the shape of the context
 interface AuthContextType {
-  currentUser: User | null
+  currentUser: MockUser | null
   isLoadingUser: boolean
   isLoggedIn: boolean
-  signInWithGoogle: () => Promise<UserCredential>
+  signInWithGoogle: () => Promise<void>
   logout: () => Promise<void>
   firstLogin: boolean
 }
@@ -47,63 +43,37 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
+// Mock user for testing (Firebase disabled)
+const MOCK_USER: MockUser = {
+  uid: 'test-user-123',
+  email: 'test@example.com',
+  displayName: 'Test User',
+  photoURL: null
+}
+
 // Provider component
 export default function AuthProvider({ children }: AuthProviderProps) {
   const setHasFetchedUserSettings = useSettingsStore(state => state.setHasFetchedUserSettings)
 
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
-  const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true)
+  // Always logged in with mock user (Firebase disabled)
+  const [currentUser, setCurrentUser] = useState<MockUser | null>(MOCK_USER)
+  const [isLoadingUser, setIsLoadingUser] = useState<boolean>(false)
   const [firstLogin, setFirstLogin] = useState<boolean>(false)
 
   const isLoggedIn = currentUser ? true : false
 
   const signInWithGoogle = async () => {
-    setIsLoadingUser(true)
-    const provider = await new GoogleAuthProvider()
-
-    // Always show the "choose an account" popup
-    provider.setCustomParameters({
-      prompt: 'select_account'
-    })
-
-    const result = await signInWithPopup(auth, provider)
-
-    const isNewUser = getAdditionalUserInfo(result)?.isNewUser ?? false
-    
-    // First time logged in
-    if (isNewUser) {
-      setFirstLogin(true)
-    }
-
-    setIsLoadingUser(false)
-    return result
+    // Mock sign in - no Firebase call
+    console.log('Mock sign in (Firebase disabled)')
+    setCurrentUser(MOCK_USER)
   }
 
   const logout = async () => {
+    // Mock logout
     setCurrentUser(null)
     setHasFetchedUserSettings(false)
-
-    return await signOut(auth)
+    console.log('Mock logout (Firebase disabled)')
   }
-
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      // console.log('Authenticating user...')
-      setIsLoadingUser(true)
-      try {
-        setCurrentUser(user)
-        if (!user) throw new Error('No user found')
-        console.log('Found user')
-      } catch (error: unknown) {
-        if (error instanceof Error) console.log(error.message)
-      } finally {
-        setIsLoadingUser(false)
-      }
-    })
-
-    return unsubscribe
-  }, [])
 
   const value: AuthContextType = {
     currentUser,
