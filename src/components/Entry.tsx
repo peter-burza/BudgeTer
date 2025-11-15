@@ -16,7 +16,9 @@ import { CURRENCIES } from '@/utils/constants'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/ShadcnComponents/select"
@@ -64,6 +66,8 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
   const [newTrCurrency, setNewTrCurrency] = useState<Currency>(selectedCurrency)
   const [showDuplicateTrQ, setShowDuplicateTRQ] = useState<boolean>(false)
   const [dontAskAgain, setDontAskAgain] = useState<boolean>(false)
+  
+  const [JUSTTESTPROPERTY, setJUSTTESTPROPERTY] = useState<string>('TEST1')
 
   const cantAddEntry: boolean | undefined = typedAmount === 0 ? true : false
   const trSignatureStructure = [
@@ -98,8 +102,8 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
   }
 
   useEffect(() => {
-    console.log(category);
-    
+    console.log(category)
+
   }, [category])
 
   function handleSetDate(value: dayjs.Dayjs): void {
@@ -246,7 +250,7 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
                       key={currency.code}
                       value={currency.code}
                       title={`${currency.code}  -  ${currency.name}  -  ${currency.symbol}`}
-                      // className={currency.code === newTrCurrency.code ? "!bg-[var(--color-dark-blue)] !text-[var(--background)] data-[highlighted]:!bg-[var(--color-dark-blue)]" : ""}
+                    // className={currency.code === newTrCurrency.code ? "!bg-[var(--color-dark-blue)] !text-[var(--background)] data-[highlighted]:!bg-[var(--color-dark-blue)]" : ""}
                     >
                       {currency.code}
                     </SelectItem>
@@ -259,7 +263,10 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
 
         <div className="flex flex-col gap-2 max-w-[232px] w-full">
           <Label htmlFor="type">Type:</Label>
-          <Select value={type} onValueChange={(val: TrType) => handleSetType(val)}>
+          <Select
+            value={type}
+            onValueChange={(val: TrType) => handleSetType(val)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Type" />
             </SelectTrigger>

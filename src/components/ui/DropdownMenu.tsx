@@ -4,17 +4,27 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/ShadcnComponents/dropdown-menu"
+import { useAuth } from "@/context/AuthContext"
+import { useSettingsStore } from "@/context/SettingsState"
+import { useTransactions } from "@/context/TransactionsContext"
+import { useRouter } from "next/navigation"
 
 export default function DropdownMenuComp() {
+  const router = useRouter()
+  const { logout } = useAuth()
+  const { clearTransactions } = useTransactions()
+  const setDefaultUserSettings = useSettingsStore(state => state.setDefaultUserSettings)
+
+  const logoutUser = async (): Promise<void> => {
+    await logout()
+    clearTransactions()
+    setDefaultUserSettings()
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -27,11 +37,11 @@ export default function DropdownMenuComp() {
       <DropdownMenuContent className="w-56">
 
         <DropdownMenuGroup>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => { router.push('/') }}>
             Dashboard
             <DropdownMenuShortcut><span className="text-sm"><i className="fa-solid fa-chart-bar"></i></span></DropdownMenuShortcut>
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => { router.push('/settings') }}>
             Settings
             <DropdownMenuShortcut><span className="text-sm"><i className="fa-solid fa-gear"></i></span></DropdownMenuShortcut>
           </DropdownMenuItem>
@@ -40,7 +50,7 @@ export default function DropdownMenuComp() {
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={logoutUser}>
             Log out
             <DropdownMenuShortcut><span className="text-sm"><i className="fa-solid fa-right-from-bracket"></i></span></DropdownMenuShortcut>
           </DropdownMenuItem>
