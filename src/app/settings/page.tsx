@@ -29,7 +29,6 @@ const SettingsPage = () => {
 
                 <hr className="text-[var(--color-dark-blue)] w-[85%] mb-3 mt-4" />
 
-                <h4 className="text-center pb-2">Expecting Transactions</h4>
                 <ExpTransactions />
             </div>
         </>

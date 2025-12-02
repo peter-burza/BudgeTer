@@ -2,11 +2,11 @@
 
 import React, { useEffect, useMemo, useState } from "react"
 import TransactionsList, { sortDateNewestFirst } from "./TransactionsList"
-import { calculateTotalSimplier, fancyNumber, getMonth, getMonthName, getMonthNumber, getYear, getYearsFromTransactions, roundToTwo } from "@/utils"
-import { Transaction } from "@/interfaces"
-import { TrType } from '@/enums'
+import { calculateTotalSimplier, fancyNumber, getMonth, getMonthName, getMonthNumber, getYear, getYearsFromTransactions, roundToTwo } from "@/lib"
+import { Transaction } from "@/lib/interfaces"
+import { TrType } from '@/lib/enums'
 import ExpenseBreakdown from "./ExpenseBreakdown"
-import { Currency } from "@/types"
+import { Currency } from "@/lib/types"
 import { useCurrencyStore } from "@/context/CurrencyState"
 import Summary from "./Summary"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/ShadcnComponents/select"
@@ -89,12 +89,12 @@ const TransactionHistory: React.FC<TransactionHistoryPtops> = ({ transactions, s
     }, [expenseFilteredTransactions, selectedCurrency])
 
     useEffect(() => {
-        const income = dateFilteredTransactions.filter(t => t.type === TrType.Income);
-        const expense = dateFilteredTransactions.filter(t => t.type === TrType.Expense);
+        const income = dateFilteredTransactions.filter(t => t.type === TrType.Income)
+        const expense = dateFilteredTransactions.filter(t => t.type === TrType.Expense)
 
-        setIncomeFilteredTransactions(income);
-        setExpenseFilteredTransactions(expense);
-    }, [dateFilteredTransactions]);
+        setIncomeFilteredTransactions(income)
+        setExpenseFilteredTransactions(expense)
+    }, [dateFilteredTransactions])
 
 
     useEffect(() => { // to ensure that when the page is loaded and all data are fetched, the filter will set te latest Transaction date
@@ -163,7 +163,7 @@ const TransactionHistory: React.FC<TransactionHistoryPtops> = ({ transactions, s
 
                 <div
                     onClick={triggerReset}
-                    className="flex justify-center bg-[var(--color-dark-blue)] py-[8px] px-[6px] rounded-full duration-200 hover:rotate-180 cursor-pointer"
+                    className="flex justify-center bg-[var(--color-dark-blue)] py-[8px] px-[6px] rounded-full duration-200 hover:rotate-180 border border-transparent hover:border-[var(--color-light-blue)] cursor-pointer"
                 >
                     <i title="Reset filters" className="fa-solid fa-rotate"></i>
                 </div>

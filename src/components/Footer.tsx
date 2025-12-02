@@ -2,7 +2,7 @@ const Footer = () => {
 
 
     return (
-        <div id="footer" className="bg-gray-900 text-gray-300 px-6 py-12">
+        <div id="footer" className="bg-[var(--background-2)] text-gray-300 px-6 py-12">
             <div className="flex flex-col md:flex-row justify-center max-w-7xl mx-auto gap-8">
 
                 <div className="text-center">

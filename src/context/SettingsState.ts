@@ -1,5 +1,5 @@
-import { Currency } from "@/types";
-import { CURRENCIES } from "@/utils/constants"
+import { Currency } from "@/lib/types";
+import { CURRENCIES } from "@/lib/constants"
 import { User } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { create } from "zustand";

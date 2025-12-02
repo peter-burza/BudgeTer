@@ -1,15 +1,14 @@
 'use client'
 
-import { Transaction } from "@/interfaces"
-import { Category } from '@/enums'
-import { TrType } from '@/enums'
-import ResponsiveHeader from "./ui/ResponsiveHeader"
+import { Transaction } from "@/lib/interfaces"
+import { Category } from '@/lib/enums'
+import { TrType } from '@/lib/enums'
 import { useEffect, useState } from "react"
-import { renderSortingIcon } from "./TransactionsList"
-import { Currency } from "@/types"
-import { useTransactions } from "@/context/TransactionsContext"
+import { CategorySummary, Currency } from "@/lib/types"
 import { useCurrencyStore } from "@/context/CurrencyState"
-import { displayCategory, roundToTwo } from "@/utils"
+import { roundToTwo } from "@/lib"
+import GenericTable, { ColumnConfig } from "./GenericTable"
+import ExpenseBreakdownCard from "./ExpenseBreakdownCard"
 
 interface ExpenseBreakdownProps {
   dateFilteredTransactions: Transaction[]
@@ -18,13 +17,6 @@ interface ExpenseBreakdownProps {
   totalExpense: number
   isLoading: boolean
   displayAmount: (amount: number, rate?: number) => string
-}
-
-type CategorySummary = {
-  category: Category
-  total: number
-  percentage: number
-  currency: Currency
 }
 
 function sortTotalHighFirst(list: CategorySummary[]): CategorySummary[] {
@@ -37,9 +29,57 @@ function sortTotalLowFirst(list: CategorySummary[]): CategorySummary[] {
 const ExpenseBreakdown: React.FC<ExpenseBreakdownProps> = ({ dateFilteredTransactions, screenWidth, selectedCurrency, totalExpense, isLoading }) => {
   const baseCurrency = useCurrencyStore(state => state.baseCurrency)
   const convertGlobalFunc = useCurrencyStore(state => state.convertGlobalFunc)
-  const { transactions } = useTransactions()
-  const [totalAscending, setTotalAscending] = useState<boolean | null>(null)
+  // const { transactions } = useTransactions()
+  const [totalAscending, setTotalAscending] = useState<boolean | null>(false)
   const [orderedBreakdown, setOrderedBreakdown] = useState<CategorySummary[]>([])
+
+  const columns: ColumnConfig[] = [
+    {
+      id: 'category',
+      label: 'Category',
+      iconClass: 'fa-icons',
+      smallRatio: '6/18',
+      largeRatio: '6/18',
+    },
+    {
+      id: 'total',
+      label: 'Total',
+      iconClass: 'fa-chart-simple',
+      smallRatio: '6/18',
+      largeRatio: '6/18',
+      sortable: true,
+      sortAscending: (list) => sortTotalHighFirst(list),
+      sortDescending: (list) => sortTotalLowFirst(list),
+      clickable: true
+    },
+    {
+      id: 'percentage',
+      label: 'Percentage',
+      iconClass: 'fa-percent',
+      smallRatio: '6/18',
+      largeRatio: '6/18'
+    },
+  ]
+
+  const renderRow = (categorySummary: CategorySummary, idx: number) => (
+    <ExpenseBreakdownCard
+      key={idx}
+      screenWidth={screenWidth}
+      categorySummary={categorySummary}
+      widthRatio={{
+        smalest: {
+          hd_1: "1/3",
+          hd_2: "1/3",
+          hd_3: "1/3"
+        },
+        sm: {
+          hd_1: "1/3",
+          hd_2: "1/3",
+          hd_3: "1/3"
+        }
+      }}
+    />
+  )
 
 
   async function getExpenseBreakdown(): Promise<CategorySummary[]> {
@@ -79,13 +119,13 @@ const ExpenseBreakdown: React.FC<ExpenseBreakdownProps> = ({ dateFilteredTransac
     })
   }
 
-  function setTotalReorder(): void {
-    setTotalAscending((prev) => (prev === false ? true : false))
-  }
+  // function setTotalReorder(): void {
+  //   setTotalAscending((prev) => (prev === false ? true : false))
+  // }
 
-  function resetOrdering(): void {
-    setTotalAscending(null)
-  }
+  // function resetOrdering(): void {
+  //   setTotalAscending(null)
+  // }
 
 
   useEffect(() => {
@@ -103,53 +143,22 @@ const ExpenseBreakdown: React.FC<ExpenseBreakdownProps> = ({ dateFilteredTransac
     }
 
     fetchBreakdown()
-  }, [totalAscending, dateFilteredTransactions])
+  }, [totalAscending, dateFilteredTransactions, totalExpense])
 
 
   return (
-    <div id="expense-breakdown" className="flex flex-col items-center gap-4">
-      <h4>Expense Breakdown</h4>
-      <table className="expenses-table">
-        <thead>
-          <tr>
-            <th className={`clickable ${totalAscending === null && 'text-[var(--color-light-blue)]'} category-table-header`} onClick={resetOrdering}>
-              <ResponsiveHeader label="Category" iconClass="fa-icons" screenWidth={screenWidth} />
-            </th>
-            <th className="clickable" onClick={setTotalReorder}>
-              <ResponsiveHeader label="Total" iconClass="fa-chart-simple" screenWidth={screenWidth} />
-              {renderSortingIcon(totalAscending)}
-            </th>
-            <th>
-              <ResponsiveHeader label="Percentage" iconClass="fa-percent" screenWidth={screenWidth} />
-            </th>
-          </tr>
-        </thead>
-        <tbody className={`${isLoading && 'opacity-50 duration-200'}`}>
-          {dateFilteredTransactions.length > 0
-            ? orderedBreakdown.map(({ category, total, percentage }, idx) => {
-              const isLastIdx = idx === orderedBreakdown.length - 1
-              return (
-                <tr key={category} className="bg-sky-800">
-                  <td className={`${isLastIdx ? '!border-b-0' : ''}`}>{displayCategory(category, screenWidth)}</td>
-                  <td className={`${isLastIdx ? '!border-b-0' : ''}`}>{total}{" "}{selectedCurrency.symbol}</td>
-                  <td className={`${isLastIdx ? '!border-b-0' : ''}`}>{percentage.toFixed(1)}%</td>
-                </tr>
-              )
-            })
-            : (
-              <tr>
-                <td colSpan={3} className="text-center py-4">
-                  <p className="text-gray-400">
-                    {transactions.length > 0
-                      ? 'No transactions for selected period.'
-                      : 'No transactions detected.'}
-                  </p>
-                </td>
-              </tr>
-            )}
-        </tbody>
-      </table>
-    </div>
+    <GenericTable
+      data={orderedBreakdown}
+      columns={columns}
+      renderRow={renderRow}
+      title="Expense Breakdown"
+      screenWidth={screenWidth}
+      isLoading={isLoading}
+      emptyFilterMessage="No expenses for selected period."
+      emptyDataMessage="No expenses detected."
+      showPagination={false}
+      extraRightPadding={false}
+    />
   )
 }
 

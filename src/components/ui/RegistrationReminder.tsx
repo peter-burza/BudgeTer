@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Modal from '../Modal'
 import { useAuth } from '@/context/AuthContext'
-import { Transaction } from '@/interfaces'
+import { Transaction } from '@/lib/interfaces'
 
 interface RegistrationReminderProps {
     isUserLoggedIn: boolean

@@ -1,6 +1,6 @@
 'use client'
 
-import { CURRENCIES } from "@/utils/constants"
+import { CURRENCIES } from "@/lib/constants"
 import React from 'react'
 import { db } from '../../../firebase'
 import { useAuth } from '@/context/AuthContext'
@@ -33,7 +33,7 @@ const CurrencySelector: React.FC = () => {
             value={selectedCurrency.code}
             onValueChange={(val: string) => setCurrency(val)}
         >
-            <SelectTrigger>
+            <SelectTrigger className="min-w-60">
                 <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>

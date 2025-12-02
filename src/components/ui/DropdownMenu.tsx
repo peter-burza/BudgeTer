@@ -30,7 +30,7 @@ export default function DropdownMenuComp() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="!p-2 !m-0 secondary-btn group">
+          className="!p-2 !m-0 primary-btn !bg-[var(--background-muted)] group">
           <i className="fa-solid fa-bars text-xl duration-200"></i>
         </Button>
       </DropdownMenuTrigger>
@@ -87,7 +87,7 @@ export default function DropdownMenuComp() {
 //     <div className="relative inline-block text-left">
 // <button
 //   onClick={toggleMenu}
-//   className="!p-2 !m-0 !bg-transparent secondary-btn group"
+//   className="!p-2 !m-0 !bg-transparent primary-btn group"
 // >
 //   <i className="fa-solid fa-bars text-xl group-hover:text-sky-300 duration-200"></i>
 // </button>

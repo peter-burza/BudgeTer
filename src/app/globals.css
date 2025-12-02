@@ -1,8 +1,14 @@
 @import "tw-animate-css";
 @import "tailwindcss";
 
+@theme {
+  --breakpoint-sm: 600px;
+}
+
 :root {
-  --background: #1d2631;
+  --background-2: #172433;
+
+  --background: oklch(21% 0.034 264.665);
   --foreground: #ededed;
 
   --background-muted: #263b55;
@@ -126,35 +132,22 @@ select {
 }
 
 .primary-btn {
-  background-color: var(--color-light-green);
-  color: white;
-  padding: 0.5rem 0.75rem;
-  margin: 0.5rem 0;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition-duration: 200ms;
-}
-
-.primary-btn:hover {
-  background-color: var(--hover-color-light-green);
-}
-
-.secondary-btn {
   display: flex;
   padding: 0.5rem 0.75rem;
   margin: 0.5rem 0;
   border: 1.5px solid transparent;
   border-radius: var(--radius);
-  background: #74d3ff3f;
+  background: var(--color-dark-blue);
   transition-duration: 200ms;
+  color: oklch(90.1% 0.058 230.902);
 }
 
-.secondary-btn:not([disabled]):hover {
+.primary-btn:not([disabled]):hover {
   border: 1.5px solid var(--color-light-blue);
   cursor: pointer;
 }
 
-.secondary-modal-btn {
+.primary-modal-btn {
   padding: 0.18rem 1rem;
 }
 
@@ -223,13 +216,16 @@ table th {
   border-top: none;
 }
 
-.clickable {
-  transition-duration: 250ms;
-}
+/* Apply only on devices that support hover (desktops, laptops, etc.) */
+@media (hover: hover) and (pointer: fine) {
+  .clickable {
+    transition-duration: 250ms;
+  }
 
-.clickable:hover {
-  filter: brightness(0.8);
-  cursor: pointer;
+  .clickable:hover {
+    filter: brightness(0.8);
+    cursor: pointer;
+  }
 }
 
 /* Dim entire row on hover */
@@ -303,6 +299,7 @@ table tbody tr:hover .category-cell:hover {
   z-index: 101;
   margin: 0 auto;
   border: 1px solid var(--color-light-blue);
+  border-radius: 0.75rem;
   background: var(--background-muted);
   padding: 1rem;
   display: flex;
@@ -325,15 +322,17 @@ table tbody tr:hover .category-cell:hover {
   top: 0.25rem;
   right: 0.25rem;
   padding: 0.2rem 0.1rem;
+  border: 1.5px solid transparent;
+  background-color: rgba(211, 59, 59, 0.3);
+  border-radius: 35%;
   color: var(--color-red);
-  border: 1.5px solid var(--color-red);
   transition-duration: 200ms;
   cursor: pointer;
   font-size: small;
 }
 
 .close-btn:hover {
-  border: 1.5px solid transparent;
+  border: 1.5px solid var(--color-red);
   opacity: 0.9;
 }
 
@@ -342,11 +341,6 @@ table tbody tr:hover .category-cell:hover {
     width: 30% !important
   }
 }
-
-
-
-
-
 
 .custom-root {
   margin-top: 0 !important;

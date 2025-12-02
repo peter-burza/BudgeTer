@@ -1,24 +1,22 @@
 'use client'
 
-import { Category } from '@/enums'
+import { Category } from '@/lib/enums'
 import React, { useEffect, useState } from 'react'
 import ResponsiveDatePicker from './ui/ResponsiveDatePicker'
 import dayjs from 'dayjs'
 import { useCurrencyStore } from '@/context/CurrencyState'
-import { TrType } from '@/enums'
+import { TrType } from '@/lib/enums'
 import Modal from './Modal'
 import { useTransactions } from '@/context/TransactionsContext'
-import { Currency } from '@/types'
-import { getCurrentDate, saveTransaction } from '@/utils'
+import { Currency } from '@/lib/types'
+import { CategoryIcons, generateRandomUUID, getCurrentDate, saveTransaction } from '@/lib'
 import { useAuth } from '@/context/AuthContext'
-import { CURRENCIES } from '@/utils/constants'
+import { CURRENCIES } from '@/lib/constants'
 
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/ShadcnComponents/select"
@@ -66,8 +64,6 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
   const [newTrCurrency, setNewTrCurrency] = useState<Currency>(selectedCurrency)
   const [showDuplicateTrQ, setShowDuplicateTRQ] = useState<boolean>(false)
   const [dontAskAgain, setDontAskAgain] = useState<boolean>(false)
-  
-  const [JUSTTESTPROPERTY, setJUSTTESTPROPERTY] = useState<string>('TEST1')
 
   const cantAddEntry: boolean | undefined = typedAmount === 0 ? true : false
   const trSignatureStructure = [
@@ -111,12 +107,6 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
     setDate(dateOnly)
   }
 
-  // function handleSetDate(value: Date | undefined): void {
-  //   if (!value) return
-  //   const convertedDate: string = value.toISOString().split("T")[0] // converts the date into YYY-MM-DD string format 
-  //   setDate(convertedDate)
-  // }
-
   function handleSetDescription(value: string): void {
     setDescription(value)
   }
@@ -136,7 +126,7 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
 
   function saveTr() {
     const newTr = {
-      id: crypto.randomUUID(),
+      id: generateRandomUUID(),
       signature: returnSignature(...trSignatureStructure),
       origAmount: typedAmount,
       baseAmount:
@@ -197,13 +187,13 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
         <div className="flex justify-evenly gap-1 w-full -mb-2.5">
           <button
             onClick={saveDuplicateTR}
-            className="secondary-btn !p-0.75 items-center"
+            className="primary-btn !p-0.75 items-center"
           >
             <p className="px-2">Confirm</p>
           </button>
           <button
             onClick={toggleShowDuplicateTrQ}
-            className="secondary-btn !p-0.75 items-center"
+            className="primary-btn !p-0.75 items-center"
           >
             <p className="px-2">Cancel</p>
           </button>
@@ -250,7 +240,6 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
                       key={currency.code}
                       value={currency.code}
                       title={`${currency.code}  -  ${currency.name}  -  ${currency.symbol}`}
-                    // className={currency.code === newTrCurrency.code ? "!bg-[var(--color-dark-blue)] !text-[var(--background)] data-[highlighted]:!bg-[var(--color-dark-blue)]" : ""}
                     >
                       {currency.code}
                     </SelectItem>
@@ -285,7 +274,9 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
             </SelectTrigger>
             <SelectContent>
               {Object.values(Category).map((c, idx) => (
-                <SelectItem key={idx} value={c}>{c}</SelectItem>
+                <SelectItem key={idx} value={c}>
+                      {c} {CategoryIcons[c]}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -307,7 +298,7 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
         </div>
 
         <button
-          className="secondary-btn disabled:opacity-50"
+          className="primary-btn disabled:opacity-50"
           disabled={cantAddEntry || isLoading}
           title={cantAddEntry ? 'Please enter amount' : ''}
           onClick={handleSaveTr}
