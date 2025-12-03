@@ -1,4 +1,4 @@
-import { Currency } from "@/types";
+import { Currency } from "@/lib/types";
 
 export const CURRENCIES: Record<string, Currency> = {
   USD: { code: 'USD', symbol: '$', name: 'United States Dollar' },

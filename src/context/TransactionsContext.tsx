@@ -1,8 +1,8 @@
 'use client'
 
-import { Transaction } from "@/interfaces"
+import { Transaction } from "@/lib/interfaces"
 import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useMemo, useState } from "react"
-import { saveTransaction } from "@/utils"
+import { saveTransaction } from "@/lib"
 
 
 type TransactionsContextType = {

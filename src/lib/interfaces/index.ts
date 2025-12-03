@@ -1,5 +1,5 @@
-import { Category, TrType } from '@/enums'
-import { Currency } from '@/types'
+import { Category, TrType } from '@/lib/enums'
+import { Currency } from '@/lib/types'
 
 export interface Transaction {
   readonly id?: string

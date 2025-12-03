@@ -9,7 +9,7 @@ import { db } from "../../firebase"
 import { useSettingsStore } from "@/context/SettingsState"
 import { useCurrencyStore } from "@/context/CurrencyState"
 import { useTransactions } from "@/context/TransactionsContext"
-import { areTransactionSetsEqual, processExpTransactions } from "@/utils"
+import { areTransactionSetsEqual, processExpTransactions } from "@/lib"
 import { useAppStore } from "@/context/AppStore"
 import { useExpTransactionsStore } from "@/context/ExpTransactionsStore"
 import RegistrationReminder from "@/components/ui/RegistrationReminder"
@@ -43,7 +43,7 @@ export default function Dashboard() {
       setIsLoading(true)
 
       const transactionRef = doc(db, "users", currentUser?.uid, "transactions", deleteTrId)
-      const removingTr = await deleteDoc(transactionRef)
+      await deleteDoc(transactionRef)
 
       const updatedTransactions = transactions.filter(t => (t.id !== deleteTrId))
       setTransactions(updatedTransactions)

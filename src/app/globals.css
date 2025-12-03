@@ -1,14 +1,21 @@
+@import "tw-animate-css";
 @import "tailwindcss";
 
+@theme {
+  --breakpoint-sm: 600px;
+}
+
 :root {
-  --background: #1d2631;
+  --background-2: #172433;
+
+  --background: oklch(21% 0.034 264.665);
   --foreground: #ededed;
 
   --background-muted: #263b55;
 
   --color-dark-blue: #00b7ff3a;
   --color-light-blue: #74d3ffb0;
-  --color-light-green:  #009689;
+  --color-light-green: #009689;
   --color-red: #ff4e7a;
   --color-link: #60a5fa;
   --color-link-transparent: rgba(37, 99, 235, 0.2);
@@ -19,6 +26,40 @@
   --color-list-bg-green: #84ffb73f;
   --color-list-border-red: #fa6f6f50;
   --color-list-border-green: #00d45869;
+
+  --border: #7f7f7f77;
+
+  /* Shadcn */
+  --radius: 0.625rem;
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  /* --border: oklch(0.922 0 0); */
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 /* @theme inline {
@@ -55,7 +96,8 @@ h4 {
   font-size: 1.25rem;
 }
 
-h5, h6 {
+h5,
+h6 {
   font-size: 1rem;
 }
 
@@ -83,65 +125,65 @@ select {
   align-items: center;
   gap: 0.5rem;
   background: var(--background-muted);
-  border-radius: 0.375rem;
+  border-radius: var(--radius);
   padding: 0.75rem;
   max-width: 650px;
   width: 100%;
 }
 
 .primary-btn {
-  background-color: var(--color-light-green);
-  color: white;
-  padding: 0.5rem 0.75rem;
-  margin: 0.5rem 0;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  transition-duration: 200ms;
-}
-
-.primary-btn:hover {
-  background-color: var(--hover-color-light-green);
-}
-
-.secondary-btn {
   display: flex;
   padding: 0.5rem 0.75rem;
   margin: 0.5rem 0;
-  border: 1.5px solid var(--color-light-blue);
-  border-radius: 0.2rem;
-  background: #74d3ff3f;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius);
+  background: var(--color-dark-blue);
   transition-duration: 200ms;
+  color: oklch(90.1% 0.058 230.902);
 }
 
-.secondary-btn:not([disabled]):hover {
-  border: 1.5px solid transparent;
+.primary-btn:not([disabled]):hover {
+  border: 1.5px solid var(--color-light-blue);
   cursor: pointer;
 }
 
-.secondary-modal-btn {
+.primary-modal-btn {
   padding: 0.18rem 1rem;
 }
 
-input,
+/* Chrome, Safari, Edge, Opera */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+
+/* input,
 select,
 textarea {
   box-shadow: 0 0 1.5px 1px white;
   transition-duration: 200ms;
-  border-radius: 0.25rem;
+  border-radius: var(--radius);
 }
 
 input[type="checkbox"] {
   box-shadow: unset;
-}
+} */
 
-input:hover,
+/* input:not([data-slot="input"]):hover,
 select:hover,
 textarea:hover,
-input:focus,
+input:not([data-slot="input"]):focus,
 select:focus,
 textarea:focus {
   box-shadow: unset;
-}
+} */
 
 input,
 select,
@@ -149,7 +191,7 @@ textarea,
 p,
 th,
 td {
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 td {
@@ -174,13 +216,16 @@ table th {
   border-top: none;
 }
 
-.clickable {
-  transition-duration: 250ms;
-}
+/* Apply only on devices that support hover (desktops, laptops, etc.) */
+@media (hover: hover) and (pointer: fine) {
+  .clickable {
+    transition-duration: 250ms;
+  }
 
-.clickable:hover {
-  filter: brightness(0.8);
-  cursor: pointer;
+  .clickable:hover {
+    filter: brightness(0.8);
+    cursor: pointer;
+  }
 }
 
 /* Dim entire row on hover */
@@ -254,6 +299,7 @@ table tbody tr:hover .category-cell:hover {
   z-index: 101;
   margin: 0 auto;
   border: 1px solid var(--color-light-blue);
+  border-radius: 0.75rem;
   background: var(--background-muted);
   padding: 1rem;
   display: flex;
@@ -268,23 +314,25 @@ table tbody tr:hover .category-cell:hover {
 }
 
 .modal-content p {
-  line-height: 1.2rem;
+  line-height: 1.5rem;
 }
 
-.close-btn {  
+.close-btn {
   position: absolute;
   top: 0.25rem;
   right: 0.25rem;
   padding: 0.2rem 0.1rem;
+  border: 1.5px solid transparent;
+  background-color: rgba(211, 59, 59, 0.3);
+  border-radius: 35%;
   color: var(--color-red);
-  border: 1.5px solid var(--color-red);
   transition-duration: 200ms;
   cursor: pointer;
   font-size: small;
 }
 
 .close-btn:hover {
-  border: 1.5px solid transparent;
+  border: 1.5px solid var(--color-red);
   opacity: 0.9;
 }
 
@@ -293,11 +341,6 @@ table tbody tr:hover .category-cell:hover {
     width: 30% !important
   }
 }
-
-
-
-
-
 
 .custom-root {
   margin-top: 0 !important;
@@ -326,12 +369,12 @@ table tbody tr:hover .category-cell:hover {
 }
 
 .react-datepicker {
-  border-radius: 0.25rem !important;
+  border-radius: var(--radius) !important;
 }
 
 .react-datepicker__month-container {
   min-width: 232px;
-  border-radius: 0.15rem;
+  border-radius: var(--radius);
 }
 
 /* Layout the months in a 3-column grid */
@@ -349,7 +392,7 @@ table tbody tr:hover .category-cell:hover {
   width: 3rem !important;
   text-align: center;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--radius);
   transition: background 0.2s ease;
 }
 
@@ -358,4 +401,142 @@ table tbody tr:hover .category-cell:hover {
 .selected-month {
   background-color: #007bff;
   color: white;
+}
+
+/* @theme inline {
+
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --radius-md: calc(var(--radius) - 2px);
+
+  --radius-lg: var(--radius);
+
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+
+  --color-border: var(--border);
+
+  --color-input: var(--input);
+
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+
+  --color-chart-2: var(--chart-2);
+
+  --color-chart-3: var(--chart-3);
+
+  --color-chart-4: var(--chart-4);
+
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+
+  --color-sidebar-foreground: var(--sidebar-foreground);
+
+  --color-sidebar-primary: var(--sidebar-primary);
+
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+
+  --color-sidebar-accent: var(--sidebar-accent);
+
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+
+  --color-sidebar-border: var(--sidebar-border);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+} */
+
+.dark {
+
+  --background: oklch(0.145 0 0);
+
+  --foreground: oklch(0.985 0 0);
+
+  --card: oklch(0.205 0 0);
+
+  --card-foreground: oklch(0.985 0 0);
+
+  --popover: oklch(0.205 0 0);
+
+  --popover-foreground: oklch(0.985 0 0);
+
+  --primary: oklch(0.922 0 0);
+
+  --primary-foreground: oklch(0.205 0 0);
+
+  --secondary: oklch(0.269 0 0);
+
+  --secondary-foreground: oklch(0.985 0 0);
+
+  --muted: oklch(0.269 0 0);
+
+  --muted-foreground: oklch(0.708 0 0);
+
+  --accent: oklch(0.269 0 0);
+
+  --accent-foreground: oklch(0.985 0 0);
+
+  --destructive: oklch(0.704 0.191 22.216);
+
+  --border: oklch(1 0 0 / 10%);
+
+  --input: oklch(1 0 0 / 15%);
+
+  --ring: oklch(0.556 0 0);
+
+  --chart-1: oklch(0.488 0.243 264.376);
+
+  --chart-2: oklch(0.696 0.17 162.48);
+
+  --chart-3: oklch(0.769 0.188 70.08);
+
+  --chart-4: oklch(0.627 0.265 303.9);
+
+  --chart-5: oklch(0.645 0.246 16.439);
+
+  --sidebar: oklch(0.205 0 0);
+
+  --sidebar-foreground: oklch(0.985 0 0);
+
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+
+  --sidebar-accent: oklch(0.269 0 0);
+
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+
+  --sidebar-border: oklch(1 0 0 / 10%);
+
+  --sidebar-ring: oklch(0.556 0 0);
 }

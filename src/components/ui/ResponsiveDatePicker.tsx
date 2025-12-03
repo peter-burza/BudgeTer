@@ -28,30 +28,30 @@ export default function ResponsiveDatePicker({
         sx={{
           width: '100%',
           '& .MuiPickersOutlinedInput-root': {
+            height: '41.6px',
             bgcolor: 'var(--foreground)',
             color: 'var(--background)',
-            borderRadius: '0.2rem',
-            fontSize: '0.9rem',
-            boxShadow: '0 0 1.5px 1px white',
+            borderRadius: '0.5rem',
+            fontSize: '1rem',
+            boxShadow: 'unset',
             transitionDuration: '200ms',
             '& fieldset': {
               borderColor: 'transparent !important'
             },
             '&:hover': {
-              boxShadow: 'unset',
+              boxShadow: '0 0 1.5px 1px white',
               '& fieldset': {
                 borderColor: 'transparent !important'
               }
             },
             '&.Mui-focused': {
-              boxShadow: 'unset',
               '& fieldset': {
                 borderColor: 'transparent !important'
               }
             }
           },
           '& .MuiPickersSectionList-root': {
-            paddingY: '0.6rem'
+            paddingY: '0.5rem'
           }
         }}
       />

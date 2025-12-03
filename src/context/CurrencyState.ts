@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import { Currency, Rates } from '@/types'
-import { CURRENCIES } from "@/utils/constants"
+import { Currency, Rates } from '@/lib/types'
+import { CURRENCIES } from "@/lib/constants"
 
 
 interface CurrencyState {
@@ -61,7 +61,7 @@ export const useCurrencyStore = create<CurrencyState>((set, get) => ({
       }
 
       const convertedAmount = amount * data.rates[to]
-      console.log(' = ' + Math.round(convertedAmount * 100) / 100)
+      // console.log(' = ' + Math.round(convertedAmount * 100) / 100)
       
       return Math.round(convertedAmount * 100) / 100
     } catch (error) {
