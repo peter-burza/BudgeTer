@@ -53,7 +53,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onConfirm, children, inc
                 {children}
                 {
                     includeOk &&
-                    <button className="secondary-btn secondary-modal-btn" onClick={onClose}>
+                    <button className="primary-btn primary-modal-btn" onClick={onClose}>
                         <p>Ok</p>
                     </button>
                 }

@@ -1,4 +1,4 @@
-import { ExpectingTransaction } from "@/interfaces";
+import { ExpectingTransaction } from "@/lib/interfaces";
 import { create } from "zustand";
 
 interface ExpTransactionsStoreProps {

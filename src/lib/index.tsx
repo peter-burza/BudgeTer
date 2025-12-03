@@ -1,7 +1,7 @@
 import { JSX } from "@emotion/react/jsx-runtime"
-import { ExpectingTransaction, Transaction } from "../interfaces"
-import { Rates } from "../types"
-import { Category } from "@/enums"
+import { ExpectingTransaction, Transaction } from "./interfaces"
+import { Rates } from "./types"
+import { Category } from "@/lib/enums"
 import dayjs from "dayjs"
 import { arrayUnion, doc, setDoc, updateDoc } from "firebase/firestore"
 import { db } from "../../firebase"
@@ -304,11 +304,11 @@ export function areTransactionSetsEqual(arr1: Transaction[] | ExpectingTransacti
 }
 
 export function fancyNumber(num: number): string {
-  return num.toFixed(2).toLocaleString()
+  return Number(num.toFixed(2)).toLocaleString().replace(/,/g, ' ')
 }
 
 export function displayCategory(category: Category, screenWidth: number): string | JSX.Element {
-  return screenWidth > 510 ? category : CategoryIcons[category]
+  return screenWidth > 600 ? category : CategoryIcons[category]
 }
 
 export function getCurrentDay() {
@@ -414,7 +414,7 @@ export async function processExpTransactions(
         const fullDate = `${month}-${expTr.payDay.toString().padStart(2, '0')}`
         saveTransaction(
           {
-            id: crypto.randomUUID(),
+            id: generateRandomUUID(),
             signature: returnSignature(expTr.origAmount, expTr.type, expTr.category, (expTr.description === undefined ? '' : expTr.description), fullDate, expTr.currency.code),
             origAmount: expTr.origAmount,
             baseAmount: expTr.baseAmount,
@@ -450,7 +450,7 @@ export async function processExpTransactions(
       const currentMonth = getCurrentDate('YYYY-MM')
       saveTransaction(
         {
-          id: crypto.randomUUID(),
+          id: generateRandomUUID(),
           signature: returnSignature(expTr.origAmount, expTr.type, expTr.category, (expTr.description === undefined ? '' : expTr.description), currentDate, expTr.currency.code),
           origAmount: expTr.origAmount,
           baseAmount: expTr.baseAmount,
@@ -475,3 +475,29 @@ export async function processExpTransactions(
   })
 }
 
+export function generateRandomUUID() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+
+  // Fallback using crypto.getRandomValues
+  const buf = new Uint8Array(16)
+  crypto.getRandomValues(buf)
+
+  // Set RFC4122 version bits
+  buf[6] = (buf[6] & 0x0f) | 0x40
+  buf[8] = (buf[8] & 0x3f) | 0x80
+
+  const hex = [...buf].map(b => b.toString(16).padStart(2, "0")).join("")
+  return (
+    hex.substring(0, 8) +
+    "-" +
+    hex.substring(8, 12) +
+    "-" +
+    hex.substring(12, 16) +
+    "-" +
+    hex.substring(16, 20) +
+    "-" +
+    hex.substring(20)
+  )
+}

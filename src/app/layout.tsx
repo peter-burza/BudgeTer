@@ -24,7 +24,7 @@ export default function RootLayout({
       <AuthProvider>
         <TransactionsProvider>
           <body className="min-h-screen flex flex-col">
-            <header className="flex flex-col gap-3 p-3 pb-0">
+            <header>
               <TopNav />
             </header>
 

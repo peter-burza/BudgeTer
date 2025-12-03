@@ -1,11 +1,12 @@
 'use client'
 
-import { CURRENCIES } from "@/utils/constants"
+import { CURRENCIES } from "@/lib/constants"
 import React from 'react'
 import { db } from '../../../firebase'
 import { useAuth } from '@/context/AuthContext'
 import { doc, updateDoc } from 'firebase/firestore'
 import { useCurrencyStore } from '@/context/CurrencyState'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ShadcnComponents/select"
 
 const CurrencySelector: React.FC = () => {
     const selectedCurrency = useCurrencyStore((state) => state.selectedCurrency)
@@ -22,23 +23,31 @@ const CurrencySelector: React.FC = () => {
         }
         // local save
         setSelectedCurrency(CURRENCIES[selectedCurrCode]);
-        console.log('Currency changed');
+        // console.log('Currency changed');
 
     }
 
 
     return (
-        <select
-            id="currency_select"
+        <Select
             value={selectedCurrency.code}
-            onChange={(e) => setCurrency(e.target.value)}
+            onValueChange={(val: string) => setCurrency(val)}
         >
-            {Object.values(CURRENCIES).map((currency) => (
-                <option key={currency.code} value={currency.code}>
-                    {currency.code}  -  {currency.name}  -  &#91;{currency.symbol}&#93;
-                </option>
-            ))}
-        </select>
+            <SelectTrigger className="min-w-60">
+                <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+                {Object.values(CURRENCIES).map((currency, idx) => (
+                    <SelectItem
+                        key={idx}
+                        value={currency.code}
+                        title={`${currency.code}  -  ${currency.name}  -  ${currency.symbol}`}
+                    >
+                        {currency.code}  -  {currency.name}  -  &#91;{currency.symbol}&#93;
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
     )
 }
 
