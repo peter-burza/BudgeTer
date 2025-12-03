@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 'use client'
 
 import React, { useMemo, useState, useEffect, JSX } from 'react'
 import ResponsiveHeader from './ui/ResponsiveHeader'
 import Modal from './Modal'
-import { handleToggle } from '@/lib'
 
 /**
  * Configuration for a single column in the table

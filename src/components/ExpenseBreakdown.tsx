@@ -29,8 +29,6 @@ function sortTotalLowFirst(list: CategorySummary[]): CategorySummary[] {
 const ExpenseBreakdown: React.FC<ExpenseBreakdownProps> = ({ dateFilteredTransactions, screenWidth, selectedCurrency, totalExpense, isLoading }) => {
   const baseCurrency = useCurrencyStore(state => state.baseCurrency)
   const convertGlobalFunc = useCurrencyStore(state => state.convertGlobalFunc)
-  // const { transactions } = useTransactions()
-  const [totalAscending, setTotalAscending] = useState<boolean | null>(false)
   const [orderedBreakdown, setOrderedBreakdown] = useState<CategorySummary[]>([])
 
   const columns: ColumnConfig[] = [
@@ -119,31 +117,15 @@ const ExpenseBreakdown: React.FC<ExpenseBreakdownProps> = ({ dateFilteredTransac
     })
   }
 
-  // function setTotalReorder(): void {
-  //   setTotalAscending((prev) => (prev === false ? true : false))
-  // }
-
-  // function resetOrdering(): void {
-  //   setTotalAscending(null)
-  // }
-
 
   useEffect(() => {
     async function fetchBreakdown() {
       const breakdown = await getExpenseBreakdown()
-      const newOrderedBreakdown =
-        totalAscending !== null
-          ? (
-            totalAscending === false
-              ? sortTotalHighFirst(breakdown)
-              : sortTotalLowFirst(breakdown)
-          )
-          : breakdown
-      setOrderedBreakdown(newOrderedBreakdown)
+      setOrderedBreakdown(breakdown)
     }
 
     fetchBreakdown()
-  }, [totalAscending, dateFilteredTransactions, totalExpense])
+  }, [dateFilteredTransactions, totalExpense])
 
 
   return (
