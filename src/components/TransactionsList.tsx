@@ -163,10 +163,10 @@ const TransactionsList: React.FC<ListProps> = ({ dateFilteredTransactions, delet
                 <>
                     <h3>Table usage info</h3>
                     <ul className="flex flex-col gap-2 text-start">
-                        <li className="p-1.5">1. Click on a row for more details.</li>
-                        <li className="p-1.5">2. Click on the table headers to filter & reorder the list.</li>
-                        <li className="p-1.5">3. Click on specific category for category filtering.</li>
-                        <li className="p-1.5">4. Click on the header category icon for category filter reset.</li>
+                        <li className="p-0.5">1. Click on a row for more details.</li>
+                        <li className="p-0.5">2. Click on the table headers to filter & reorder the list.</li>
+                        <li className="p-0.5">3. Click on specific category for category filtering.</li>
+                        <li className="p-0.5">4. Click on the header category icon for category filter reset.</li>
                     </ul>
                 </>
             }

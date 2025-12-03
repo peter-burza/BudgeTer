@@ -88,8 +88,8 @@ const Summary: React.FC<SummaryProps> = ({ dateFilteredTransactions, totalExpens
             <Modal onClose={toggleShowInfo} isOpen={showInfo}>
                 <h3>Summary</h3 >
                 <ul className="flex flex-col gap-1 text-start">
-                    <li className='p-1.5'>1. Basic info of the selected period.</li>
-                    <li className='p-1.5'>2. Click on the Income/Expense bar to show each currency summary separatly.</li>
+                    <li className='p-0.5'>1. Basic info of the selected period.</li>
+                    <li className='p-0.5'>2. Click on the Income/Expense bar to show each currency summary separatly.</li>
                 </ul >
             </Modal >
 
