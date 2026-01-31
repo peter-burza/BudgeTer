@@ -28,7 +28,7 @@ export default function RootLayout({
               <TopNav />
             </header>
 
-            <main id="app" className="flex-grow flex flex-col gap-3 p-3 items-center">
+            <main id="app" className="flex flex-grow flex-col justify-start gap-3 p-3 items-center">
               {children}
               <ScreenTracker />
             </main>

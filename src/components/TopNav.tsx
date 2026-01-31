@@ -11,24 +11,26 @@ export default function TopNav() {
   const router = useRouter()
   
   return (
-    <div
-      id="top-nav-container"
-      className="flex justify-between items-center p-3 bg-[var(--background-2)]"
-    >
-      <div className='flex justify-between items-center'>
-        <h3 onClick={() => {router.push("/")}} className="text-4xl p-2 px-2 cursor-pointer"> <span className="text-sky-300">BudgeTer</span> </h3>
-        <h4>{currentUser ? ' - ' + currentUser?.displayName : ''}</h4>
+    <div className='flex justify-center bg-[var(--background-2)]'>
+      <div
+        id="top-nav-container"
+        className="flex justify-between items-center p-3 w-full max-w-300"
+      >
+        <div className='flex justify-between items-center'>
+          <h3 onClick={() => {router.push("/")}} className="text-4xl p-2 px-2 cursor-pointer"> <span className="text-sky-300">BudgeTer</span> </h3>
+          <h4>{currentUser ? ' - ' + currentUser?.displayName : ''}</h4>
+        </div>
+        {currentUser ? (
+          <DropdownMenuComp />
+        ) : (
+          <button
+            onClick={signInWithGoogle}
+            className="px-2 primary-btn"
+          >
+            <h5>Sign in with Google</h5>
+          </button>
+        )}
       </div>
-      {currentUser ? (
-        <DropdownMenuComp />
-      ) : (
-        <button
-          onClick={signInWithGoogle}
-          className="px-2 primary-btn"
-        >
-          <h5>Sign in with Google</h5>
-        </button>
-      )}
     </div>
   )
 }

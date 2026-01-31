@@ -1,9 +1,9 @@
 import { JSX } from "@emotion/react/jsx-runtime"
 import { ExpectingTransaction, Transaction } from "./interfaces"
 import { Rates } from "./types"
-import { Category } from "@/lib/enums"
+import { Category, TrType } from "@/lib/enums"
 import dayjs from "dayjs"
-import { arrayUnion, doc, setDoc, updateDoc } from "firebase/firestore"
+import { arrayUnion, collection, doc, getDocs, increment, runTransaction, updateDoc } from "firebase/firestore"
 import { db } from "../../firebase"
 import { User } from "firebase/auth"
 import { returnSignature } from "@/components/Entry"
@@ -245,62 +245,63 @@ export function calculateTotalSimplier(amounts: number[]): number {
   }, 0)
 }
 
+// Convert one amount to selected currency
+export async function convertAmountToSelectedCurrency(
+  selectedCurrencyCode: string,
+  baseCurrencyCode: string,
+  convertGlobalFunc: (from: string, to: string, amount: number) => Promise<number>,
+  amountInBase: number,
+  amountInOrig?: number,
+  origCurrencyCode?: string
+): Promise<number> {
+  // 1. If selected is base, we return amountInBase
+  if (selectedCurrencyCode === baseCurrencyCode) {
+    return Promise.resolve(amountInBase)
+  }
+
+  // 2. If selected matches original currency, return amountInOrig
+  if (origCurrencyCode && selectedCurrencyCode === origCurrencyCode && amountInOrig !== undefined) {
+    return Promise.resolve(amountInOrig)
+  }
+
+  // 3. Fallback: Convert
+  // If we have original currency and amount, convert from that (usually 1 step)
+  // Otherwise convert from base (conceptually could be "base -> selected")
+  if (origCurrencyCode && amountInOrig !== undefined) {
+    return convertGlobalFunc(origCurrencyCode, selectedCurrencyCode, amountInOrig)
+  }
+
+  return convertGlobalFunc(baseCurrencyCode, selectedCurrencyCode, amountInBase)
+}
+
+export async function calculateTotalInCurrency(
+  transactions: Transaction[],
+  selectedCurrencyCode: string,
+  baseCurrencyCode: string,
+  convertGlobalFunc: (from: string, to: string, amount: number) => Promise<number>
+): Promise<number> {
+  const convertedTrAmountsPromises = transactions.map((t) => {
+    return convertAmountToSelectedCurrency(
+      selectedCurrencyCode,
+      baseCurrencyCode,
+      convertGlobalFunc,
+      t.baseAmount,
+      t.origAmount,
+      t.currency.code
+    )
+  })
+
+  const resolvedAmounts = await Promise.all(convertedTrAmountsPromises)
+  const total = calculateTotalSimplier(resolvedAmounts)
+  return roundToTwo(total)
+}
+
 export function handleToggle(x: boolean, setX: React.Dispatch<React.SetStateAction<boolean>>): void {
   setX(!x)
 }
 
 export function roundToTwo(num: number): number {
   return Math.round(num * 100) / 100
-}
-
-function getArrayType(arr: (Transaction | ExpectingTransaction)[]): 'transaction' | 'expecting' | 'unknown' {
-  if (arr.length === 0) return 'unknown'
-  const item = arr[0]
-
-  if ('date' in item) return 'transaction'
-  if ('startDate' in item) return 'expecting'
-  return 'unknown'
-}
-
-
-export function areTransactionSetsEqual(arr1: Transaction[] | ExpectingTransaction[], arr2: Transaction[] | ExpectingTransaction[]): boolean {
-  const type1 = getArrayType(arr1)
-  const type2 = getArrayType(arr2)
-  if (type1 !== type2 || arr1.length !== arr2.length) return false
-
-  const sortById = (a: Transaction | ExpectingTransaction, b: Transaction | ExpectingTransaction) => a.id!.localeCompare(b.id!)
-
-  const sorted1 = [...arr1].sort(sortById)
-  const sorted2 = [...arr2].sort(sortById)
-
-  if (type1 === 'transaction') {
-    return sorted1.every((t1, index) => {
-      const tr1 = t1 as Transaction
-      const tr2 = sorted2[index] as Transaction
-      return (
-        tr1.id === tr2.id &&
-        tr1.baseAmount === tr2.baseAmount &&
-        tr1.type === tr2.type &&
-        tr1.date === tr2.date &&
-        tr1.category === tr2.category &&
-        (tr1.description || '') === (tr2.description || '')
-      )
-    })
-  }
-
-  return sorted1.every((t1, index) => {
-    const tr1 = t1 as ExpectingTransaction
-    const tr2 = sorted2[index] as ExpectingTransaction
-    return (
-      tr1.id === tr2.id &&
-      tr1.baseAmount === tr2.baseAmount &&
-      tr1.type === tr2.type &&
-      tr1.payDay === tr2.payDay &&
-      tr1.startDate === tr2.startDate &&
-      tr1.category === tr2.category &&
-      (tr1.description || '') === (tr2.description || '')
-    )
-  })
 }
 
 export function fancyNumber(num: number): string {
@@ -333,21 +334,85 @@ export function hasMultipleCurrencies(transactions: Transaction[]) {
 export async function saveTransaction(
   newTr: Transaction,
   currentUserUid: string,
+  updateCurrentBalance?: (amount: number) => void,
   setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>,
-  setTransactions?: (updater: (prev: Transaction[]) => Transaction[]) => void
+  setTransactions?: (updater: (prev: Transaction[]) => Transaction[]) => void,
+  updateLedger?: (currency: string, amount: number) => void,
+  addFutureTransaction?: (tx: Transaction) => void,
 ): Promise<void> {
-  if (!newTr.id || !newTr.baseAmount) return
+  const isIncome = newTr.type === TrType.Income
+  const isFuture = dayjs(newTr.date).isAfter(dayjs(), 'day')
+
+  // Set state
+  newTr.hasTransactionCompleted = !isFuture
 
   try {
     setIsLoading?.(true)
 
-    const trRef = doc(db, 'users', currentUserUid, 'transactions', newTr.id)
-    await setDoc(trRef, newTr)
+    await runTransaction(db, async (transaction) => {
+      if (!newTr.id) return
 
+      const userRef = doc(db, "users", currentUserUid)
+      const trRef = doc(db, "users", currentUserUid, "transactions", newTr.id)
+
+      const userSnap = await transaction.get(userRef)
+
+      if (!userSnap.exists()) {
+        throw new Error("User does not exist")
+      }
+
+      // tr save to main transactions
+      transaction.set(trRef, newTr)
+
+      // If future, we save to future transactions collection and EXIT without balance update
+      if (isFuture) {
+        const futureTrRef = doc(db, "users", currentUserUid, "futureTransactions", newTr.id)
+        transaction.set(futureTrRef, newTr)
+        return // Exit transaction (don't update balance)
+      }
+
+      // --- Past/Today Logic Below ---
+
+      const currBalance = userSnap.data().currentBalance
+
+      if (typeof currBalance !== "number") {
+        throw new Error("Current balance is not initialized")
+      }
+
+      // atomic balance update
+      const updates: Record<string, number | ReturnType<typeof increment>> = {
+        currentBalance: isIncome ? increment(newTr.baseAmount) : increment(-newTr.baseAmount)
+      }
+
+      if (userSnap.data().balanceLedger) {
+        updates[`balanceLedger.${newTr.currency.code}`] = isIncome ? increment(newTr.origAmount) : increment(-newTr.origAmount)
+        transaction.update(userRef, updates)
+      } else {
+        // If ledger doesn't exist, creation with merge
+        transaction.set(userRef, {
+          currentBalance: userSnap.data().currentBalance + (isIncome ? newTr.baseAmount : -newTr.baseAmount),
+          balanceLedger: {
+            [newTr.currency.code]: isIncome ? newTr.origAmount : -newTr.origAmount
+          }
+        }, { merge: true })
+      }
+    })
+
+    // Local state updates
+    // Always add to transactions list so user sees it
     setTransactions?.((prev) => [...prev, newTr])
-    console.log(`Transaction (id: ${newTr.id}) saved successfully`)
+
+    // Only update local balance/ledger if it's NOT future
+    if (!isFuture) {
+      updateCurrentBalance?.(isIncome ? newTr.baseAmount : -newTr.baseAmount)
+      updateLedger?.(newTr.currency.code, isIncome ? newTr.origAmount : -newTr.origAmount)
+    } else { // Add to local future transactions if it's future
+      addFutureTransaction?.(newTr)
+    }
+
+    // console.log(`Transaction (id: ${newTr.id}) saved successfully. Future: ${isFuture}`)
   } catch (error: unknown) {
-    if (error instanceof Error) console.log(error.message)
+    if (error instanceof Error) { } // console.log(error.message)
   } finally {
     setIsLoading?.(false)
   }
@@ -359,7 +424,7 @@ export function getMissingMonthsForExpTr(
 ): string[] {
 
   const start = dayjs(startDate).startOf('month')
-  const end = dayjs().subtract(1, 'month').startOf('month') // 👈 previous month
+  const end = dayjs().subtract(1, 'month').startOf('month')
 
   const missingMonths: string[] = []
   let current = start
@@ -386,7 +451,7 @@ async function updateExpTransactionField(
     await updateDoc(transactionRef, {
       [fieldKey]: arrayUnion(newValue),
     })
-    console.log(`Updated ${fieldKey} in expTransaction ${transactionId}`)
+    // console.log(`Updated ${fieldKey} in expTransaction ${transactionId}`)
   } catch (error) {
     console.error("Error updating expTransaction:", error)
   }
@@ -396,8 +461,10 @@ export async function processExpTransactions(
   expTransactions: ExpectingTransaction[],
   currentUser: User | null,
   setTransactions: (updater: (prev: Transaction[]) => Transaction[]) => void,
+  updateCurrentBalance: (amount: number) => void,
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  rates: Rates
+  rates: Rates,
+  updateLedger?: (currency: string, amount: number) => void
 ) {
   if (!currentUser) throw new Error('User is not authenticated')
   // const rates = useCurrencyStore.getState().rates
@@ -423,28 +490,27 @@ export async function processExpTransactions(
             date: fullDate,
             category: expTr.category,
             description: `${expTr.description} (added from unprocessedMonths)`,
-            exchangeRate: rates[expTr.currency.code]
+            exchangeRate: rates[expTr.currency.code],
+            hasTransactionCompleted: true
           },
           currentUser.uid,
+          updateCurrentBalance,
           setIsLoading,
-          setTransactions
+          setTransactions,
+          updateLedger
         )
         // Add month to the processedMonths array
         if (expTr.id) {
           updateExpTransactionField(currentUser.uid, expTr.id, 'processedMonths', month)
           expTr.processedMonths.push(month)
-          console.log(month + ' added to processedMonths for expTr (' + expTr.id + ')')
-        } else console.log('expTr.id is not available')
+          // console.log(month + ' added to processedMonths for expTr (' + expTr.id + ')')
+        } else { } // console.log('expTr.id is not available')
       })
-      console.log('expTr (' + expTr.id + ') has been processed for: ' + unprocessedMonths)
+      // console.log('expTr (' + expTr.id + ') has been processed for: ' + unprocessedMonths)
     }
-    // else {
-    //   console.log('expTr (' + expTr.id + ') has no unprocessed months');
-    // }
 
     //check if tr has to be processed this month
     if (currentDayOfMonth >= expTr.payDay && !processedMonths.has(getCurrentDate('YYYY-MM'))) {
-      console.log(processedMonths)
       // save the transaction if it should be processed this month
       const currentDate = getCurrentDate('YYYY-MM-DD')
       const currentMonth = getCurrentDate('YYYY-MM')
@@ -459,18 +525,21 @@ export async function processExpTransactions(
           date: currentDate,
           category: expTr.category,
           description: expTr.description,
-          exchangeRate: rates[expTr.currency.code]
+          exchangeRate: rates[expTr.currency.code] || 1,
+          hasTransactionCompleted: true
         },
         currentUser.uid,
+        updateCurrentBalance,
         setIsLoading,
-        setTransactions
+        setTransactions,
+        updateLedger
       )
       // Add month to the processedMonths array
       if (expTr.id) {
         updateExpTransactionField(currentUser.uid, expTr.id, 'processedMonths', currentMonth)
         expTr.processedMonths.push(currentMonth)
-        console.log(currentMonth + ' added to processedMonths for expTr (' + expTr.id + ')')
-      } else console.log('expTr.id is not available')
+        // console.log(currentMonth + ' added to processedMonths for expTr (' + expTr.id + ')')
+      } else { } // console.log('expTr.id is not available')
     }
   })
 }
@@ -500,4 +569,95 @@ export function generateRandomUUID() {
     "-" +
     hex.substring(20)
   )
+}
+
+export async function processFutureTransactions(
+  currentUserUid: string,
+  updateCurrentBalance?: (amount: number) => void,
+  updateLedger?: (currency: string, amount: number) => void,
+  deleteFutureTransaction?: (id: string) => void
+) {
+  const futureTrsRef = collection(db, 'users', currentUserUid, 'futureTransactions')
+  const snapshot = await getDocs(futureTrsRef)
+
+  if (snapshot.empty) return
+
+  const today = dayjs()
+
+  try {
+    let totalBalanceChange = 0
+    const ledgerUpdates: Record<string, number> = {}
+    let processedCount = 0
+    const futureDeleteTxIds: string[] = []
+
+    await runTransaction(db, async (transaction) => {
+      const userRef = doc(db, "users", currentUserUid)
+      const userSnap = await transaction.get(userRef)
+
+      if (!userSnap.exists()) return
+
+      // Verify existence of future transactions inside the transaction to prevent double processing
+      const futureTrRefs = snapshot.docs.map(d => doc(db, 'users', currentUserUid, 'futureTransactions', d.id))
+      const futureTrSnaps = await Promise.all(futureTrRefs.map(ref => transaction.get(ref)))
+
+      snapshot.docs.forEach((_, index) => {
+        const docSnap = futureTrSnaps[index] // get the fresh snapshot from inside transaction
+
+        if (!docSnap.exists()) return // Already processed by another client
+
+        const tr = docSnap.data() as Transaction
+        const trDate = dayjs(tr.date)
+
+        // If still future, skip (re-check in case date changed? Unlikely but safe)
+        if (trDate.isAfter(today, 'day')) return
+
+        processedCount++
+
+        // Mark as completed in main list
+        const trRef = doc(db, "users", currentUserUid, "transactions", tr.id!)
+        transaction.update(trRef, { hasTransactionCompleted: true })
+
+        // Remove from future list
+        transaction.delete(docSnap.ref)
+        futureDeleteTxIds.push(docSnap.id)
+
+        // Tally balance
+        const isIncome = tr.type === TrType.Income
+        totalBalanceChange += isIncome ? tr.baseAmount : -tr.baseAmount
+
+        const currency = tr.currency.code
+        const origAmt = isIncome ? tr.origAmount : -tr.origAmount
+        ledgerUpdates[currency] = (ledgerUpdates[currency] || 0) + origAmt
+      })
+
+      if (processedCount === 0) return
+
+      // Update user balance ONCE
+      const updates: Record<string, number | ReturnType<typeof increment>> = {
+        currentBalance: increment(totalBalanceChange)
+      }
+      for (const [curr, amt] of Object.entries(ledgerUpdates)) {
+        updates[`balanceLedger.${curr}`] = increment(amt)
+      }
+      transaction.update(userRef, updates)
+      // console.log(`Reconciled ${processedCount} future transactions.`)
+    })
+
+    // Local state update after successful transaction
+    if (processedCount > 0) {
+      updateCurrentBalance?.(totalBalanceChange)
+      if (updateLedger) {
+        for (const [curr, amt] of Object.entries(ledgerUpdates)) {
+          updateLedger(curr, amt)
+        }
+      }
+    }
+
+    // Delete future transactions locally
+    if (futureDeleteTxIds.length > 0) {
+      futureDeleteTxIds.forEach(id => deleteFutureTransaction?.(id))
+    }
+  } catch (e) {
+    console.error("Error reconciling future transactions:", e)
+  }
 }

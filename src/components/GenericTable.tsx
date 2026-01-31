@@ -193,7 +193,7 @@ const GenericTable = React.forwardRef<HTMLDivElement, GenericTableProps<any>>(
 
                 {/* Table Title */}
                 <div className="flex gap-2 items-center">
-                    <h4>{title}</h4>
+                    <h5>{title}</h5>
                     {infoModalContent &&
                         <i
                             onClick={toggleShowInfo}

@@ -18,16 +18,16 @@ interface CurrencyState {
 
 export const useCurrencyStore = create<CurrencyState>((set, get) => ({
   baseCurrency: CURRENCIES.EUR,
-  setBaseCurrency: (currency) => set({ baseCurrency: currency}),
+  setBaseCurrency: (currency) => set({ baseCurrency: currency }),
 
   selectedCurrency: CURRENCIES.EUR,
   setSelectedCurrency: (newCurr: Currency) => {
-    set({ selectedCurrency: newCurr }) 
+    set({ selectedCurrency: newCurr })
   },
 
-  rates: {"EUR": 1},
+  rates: { "EUR": 1 },
   lastRatesFetch: 0,
-  setLastRatesFetch: (newTimestamp) => set({lastRatesFetch: newTimestamp}),
+  setLastRatesFetch: (newTimestamp) => set({ lastRatesFetch: newTimestamp }),
 
   fetchRates: async () => {
     const { setLastRatesFetch, lastRatesFetch } = get()
@@ -35,12 +35,12 @@ export const useCurrencyStore = create<CurrencyState>((set, get) => ({
     if (Date.now() < lastRatesFetch + oneDayInMs) return
 
     try {
-      const res = await fetch(`https://open.er-api.com/v6/latest/EUR`)
+      const res = await fetch(`https://api.frankfurter.dev/v1/latest?base=${get().baseCurrency.code}`)
       const data = await res.json()
-      
+
       set({ rates: data.rates })
       setLastRatesFetch(Date.now())
-      console.log('Exchange rates fetched')
+      // console.log('Exchange rates fetched from Frankfurter')
     } catch (error) {
       console.error('Failed to fetch rates', error)
     }
@@ -55,18 +55,18 @@ export const useCurrencyStore = create<CurrencyState>((set, get) => ({
     try {
       const response = await fetch(endpoint)
       const data = await response.json()
-      
+
       if (!data.rates || !data.rates[to]) {
         throw new Error(`Rate for ${to} not found`)
       }
 
       const convertedAmount = amount * data.rates[to]
       // console.log(' = ' + Math.round(convertedAmount * 100) / 100)
-      
-      return Math.round(convertedAmount * 100) / 100
+
+      return convertedAmount
     } catch (error) {
       console.error('Conversion failed:', error)
-      return 10 
+      return 10
     }
   }
 

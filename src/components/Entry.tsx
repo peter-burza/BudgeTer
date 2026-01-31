@@ -23,9 +23,12 @@ import {
 import { Label } from "@/components/ui/ShadcnComponents/label"
 import { Input } from './ui/ShadcnComponents/input'
 import { Textarea } from './ui/ShadcnComponents/textarea'
+import AccordionComp from './ui/AccordionComp'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/ShadcnComponents/accordion'
+import { useCurrentBalance } from '@/context/CurrentBalance'
+import { useFutureTransactions } from '@/context/FutureTransactions'
 
 interface EntryProps {
-  // saveTransaction: (transaction: Transaction) => void
   isLoading: boolean
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -52,9 +55,11 @@ export function returnSignature(
 const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
   const { currentUser } = useAuth()
   const { isDuplicate, setTransactions } = useTransactions()
+  const { updateCurrentBalance, updateLedger } = useCurrentBalance()
   const baseCurrency = useCurrencyStore((state) => state.baseCurrency)
   const selectedCurrency = useCurrencyStore((state) => state.selectedCurrency)
   const rates = useCurrencyStore((state) => state.rates)
+  const addFutureTransaction = useFutureTransactions((state) => state.addFutureTransaction)
 
   const [typedAmount, setTypedAmount] = useState<number>(0)
   const [type, setType] = useState<TrType>(TrType.Expense)
@@ -98,7 +103,7 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
   }
 
   useEffect(() => {
-    console.log(category)
+    // console.log(category)
 
   }, [category])
 
@@ -125,12 +130,14 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
   }
 
   function saveTr() {
+    const isFuture = dayjs(date).isAfter(dayjs(), 'day')
+
     const newTr = {
       id: generateRandomUUID(),
       signature: returnSignature(...trSignatureStructure),
       origAmount: typedAmount,
       baseAmount:
-        newTrCurrency === baseCurrency
+        newTrCurrency.code === baseCurrency.code
           ? typedAmount
           : toBaseCurrency(
             typedAmount,
@@ -142,19 +149,26 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
       date: date,
       category: category,
       description: description,
-      exchangeRate: rates[newTrCurrency.code]
+      exchangeRate: rates[newTrCurrency.code] ? rates[newTrCurrency.code] : 1,
+      hasTransactionCompleted: !isFuture
     }
 
     if (!currentUser) {
       // We didn't find any user logged in, so we save the Tr just for current session
       setTransactions((prev) => [...prev, newTr])
+      if (!isFuture) {
+        updateCurrentBalance(newTr.type === TrType.Expense ? -newTr.baseAmount : newTr.baseAmount)
+      }
     } else {
       // We found user so save transaction into database under his profile
       saveTransaction(
         newTr,
         currentUser.uid,
+        updateCurrentBalance,
         setIsLoading,
-        setTransactions
+        setTransactions,
+        updateLedger,
+        addFutureTransaction
       )
     }
 
@@ -209,102 +223,113 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
         </div>
       </Modal>
 
-      <div
-        id="transaction-entry"
-        className="base-container"
-      >
-        <h3>New Entry</h3>
-        <div className="flex flex-col gap-1.5 max-w-[232px] w-full">
-          <Label htmlFor="amount">Amount:</Label>
-          <div className="group relative w-full">
-            <Input
-              id="amount"
-              value={handleDisplayZero(typedAmount)}
-              onChange={(e) => handleSetAmount(e.target.value)}
-              type="number"
-              step="any"
-              placeholder="e.g. 4.99"
-              className="w-full pr-[80px]" // leave space for the select and padding
-            />
-            <div className="absolute right-0 top-0 h-full w-[80px]">
-              <Select
-                value={newTrCurrency.code}
-                onValueChange={(val: string) => handleSetCurrency(val)}
-              >
-                <SelectTrigger className="h-full w-full !bg-transparent !border-0 !shadow-none hover:!shadow-none focus:!shadow-none focus:!ring-0 pl-2 pr-3 text-right rounded-none rounded-r-lg !justify-end gap-2 [&_svg]:opacity-50">
-                  <SelectValue className="!justify-end" />
-                </SelectTrigger>
-                <SelectContent className="!min-w-[68px] w-auto max-w-[100px]">
-                  {Object.values(CURRENCIES).map((currency) => (
-                    <SelectItem
-                      key={currency.code}
-                      value={currency.code}
-                      title={`${currency.code}  -  ${currency.name}  -  ${currency.symbol}`}
-                    >
-                      {currency.code}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2 max-w-[232px] w-full">
-          <Label htmlFor="type">Type:</Label>
-          <Select
-            value={type}
-            onValueChange={(val: TrType) => handleSetType(val)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={TrType.Income}>Income</SelectItem>
-              <SelectItem value={TrType.Expense}>Expense</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex flex-col gap-2 max-w-[232px] w-full">
-          <Label htmlFor="category">Category:</Label>
-          <Select value={category} onValueChange={(val: Category) => handleSetCategory(val)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.values(Category).map((c, idx) => (
-                <SelectItem key={idx} value={c}>
-                      {c} {CategoryIcons[c]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex flex-col gap-2 max-w-[232px] w-full">
-          <Label htmlFor="date">Date:</Label>
-          <ResponsiveDatePicker setTransactionDate={handleSetDate} />
-        </div>
-
-        <div className="flex flex-col gap-2 max-w-[232px] w-full">
-          <Label htmlFor="description">Description:</Label>
-          <Textarea
-            id="message"
-            placeholder="Transaction detail."
-            value={description}
-            handleSetDescription={handleSetDescription}
-          />
-        </div>
-
-        <button
-          className="primary-btn disabled:opacity-50"
-          disabled={cantAddEntry || isLoading}
-          title={cantAddEntry ? 'Please enter amount' : ''}
-          onClick={handleSaveTr}
+      <div id="new-transaction" className="base-container !py-2">
+        <Accordion
+          type="single"
+          collapsible
+          className={`w-full rounded-lg my-0.5`}
         >
-          <h5>{isLoading === true ? 'Loading...' : 'Add Transaction'}</h5>
-        </button>
+          <AccordionItem value="new-transaction">
+            <AccordionTrigger className="py-0 clickable" iconOnRight>
+              <h4 className='w-full text-center'>New Transaction</h4>
+            </AccordionTrigger>
+            <AccordionContent className="pt-3 text-base">
+              <div id='new-transaction-form' className="flex flex-col justify-center items-center gap-2 w-full">
+                <div className="flex flex-col gap-1.5 max-w-[232px] w-full">
+                  <Label htmlFor="amount">Amount:</Label>
+                  <div className="group relative w-full">
+                    <Input
+                      id="amount"
+                      value={handleDisplayZero(typedAmount)}
+                      onChange={(e) => handleSetAmount(e.target.value)}
+                      type="number"
+                      step="any"
+                      placeholder="e.g. 4.99"
+                      className="w-full pr-[80px]" // leave space for the select and padding
+                    />
+                    <div className="absolute right-0 top-0 h-full w-[80px]">
+                      <Select
+                        value={newTrCurrency.code}
+                        onValueChange={(val: string) => handleSetCurrency(val)}
+                      >
+                        <SelectTrigger className="h-full w-full !bg-transparent !border-0 !shadow-none hover:!shadow-none focus:!shadow-none focus:!ring-0 pl-2 pr-3 text-right rounded-none rounded-r-lg !justify-end gap-2 [&_svg]:opacity-50">
+                          <SelectValue className="!justify-end" />
+                        </SelectTrigger>
+                        <SelectContent className="!min-w-[68px] w-auto max-w-[100px]">
+                          {Object.values(CURRENCIES).map((currency) => (
+                            <SelectItem
+                              key={currency.code}
+                              value={currency.code}
+                              title={`${currency.code}  -  ${currency.name}  -  ${currency.symbol}`}
+                            >
+                              {currency.code}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2 max-w-[232px] w-full">
+                  <Label htmlFor="type">Type:</Label>
+                  <Select
+                    value={type}
+                    onValueChange={(val: TrType) => handleSetType(val)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={TrType.Income}>Income</SelectItem>
+                      <SelectItem value={TrType.Expense}>Expense</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex flex-col gap-2 max-w-[232px] w-full">
+                  <Label htmlFor="category">Category:</Label>
+                  <Select value={category} onValueChange={(val: Category) => handleSetCategory(val)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.values(Category).map((c, idx) => (
+                        <SelectItem key={idx} value={c}>
+                          {CategoryIcons[c]} {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex flex-col gap-2 max-w-[232px] w-full">
+                  <Label htmlFor="date">Date:</Label>
+                  <ResponsiveDatePicker setTransactionDate={handleSetDate} />
+                </div>
+
+                <div className="flex flex-col gap-2 max-w-[232px] w-full">
+                  <Label htmlFor="description">Description:</Label>
+                  <Textarea
+                    id="message"
+                    placeholder="Transaction detail."
+                    value={description}
+                    handleSetDescription={handleSetDescription}
+                  />
+                </div>
+
+                <button
+                  className="primary-btn disabled:opacity-50"
+                  disabled={cantAddEntry || isLoading}
+                  title={cantAddEntry ? 'Please enter amount' : ''}
+                  onClick={handleSaveTr}
+                >
+                  <h6>{isLoading === true ? 'Loading...' : 'Add Transaction'}</h6>
+                </button>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div >
     </>
   )

@@ -28,10 +28,14 @@ function AccordionItem({
 function AccordionTrigger({
   className,
   iconDisabled,
+  iconOnRight,
+  iconOnLeft,
   children,
   ...props
 }: React.ComponentProps<typeof AccordionPrimitive.Trigger> & {
   iconDisabled?: boolean
+  iconOnRight?: boolean
+  iconOnLeft?: boolean
 }) {
 
   return (
@@ -41,13 +45,19 @@ function AccordionTrigger({
         disabled={iconDisabled}
         className={cn(
           "focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left text-sm font-normal transition-all outline-none cursor-pointer focus-visible:ring-[3px] disabled:pointer-events-none [&[data-state=open]>svg]:rotate-180",
+          `${(iconOnRight || iconOnLeft) && 'relative'}`,
           className
         )}
         {...props}
       >
         {children}
         {!iconDisabled &&
-          <ChevronDownIcon className={`my-auto ${iconDisabled ? 'text-gray-500' : 'text-muted-foreground'} pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200`} />
+          <ChevronDownIcon className={cn(
+            `my-auto ${iconDisabled ? 'text-gray-500' : 'text-muted-foreground'} pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200`,
+            `${(iconOnRight || iconOnLeft) && 'absolute top-1/2 -translate-y-1/2'}`,
+            `${iconOnRight && 'right-3'}`,
+            `${iconOnLeft && 'left-0'}`,
+          )} />
         }
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>

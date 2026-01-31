@@ -19,6 +19,7 @@ import {
   ReactNode
 } from 'react'
 import { useSettingsStore } from './SettingsState'
+import { useCurrentBalance } from './CurrentBalance'
 
 // Define the shape of the context
 interface AuthContextType {
@@ -50,6 +51,7 @@ interface AuthProviderProps {
 // Provider component
 export default function AuthProvider({ children }: AuthProviderProps) {
   const setHasFetchedUserSettings = useSettingsStore(state => state.setHasFetchedUserSettings)
+  const setHasFetchedCurrentBalance = useCurrentBalance(state => state.setHasFetchedCurrentBalance)
 
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true)
@@ -69,7 +71,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     const result = await signInWithPopup(auth, provider)
 
     const isNewUser = getAdditionalUserInfo(result)?.isNewUser ?? false
-    
+
     // First time logged in
     if (isNewUser) {
       setFirstLogin(true)
@@ -82,6 +84,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   const logout = async () => {
     setCurrentUser(null)
     setHasFetchedUserSettings(false)
+    setHasFetchedCurrentBalance(false)
 
     return await signOut(auth)
   }
@@ -94,9 +97,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       try {
         setCurrentUser(user)
         if (!user) throw new Error('No user found')
-        console.log('Found user')
+        // console.log('Found user')
       } catch (error: unknown) {
-        if (error instanceof Error) console.log(error.message)
+        if (error instanceof Error) { } // console.log(error.message)
       } finally {
         setIsLoadingUser(false)
       }

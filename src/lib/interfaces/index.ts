@@ -11,7 +11,8 @@ export interface Transaction {
   date: string
   category: Category
   description?: string
-  exchangeRate: number // 1 (baseCurrency) = exchangeRate (origCurrency)
+  exchangeRate: number
+  hasTransactionCompleted: boolean
 }
 
 export interface ExpectingTransaction {

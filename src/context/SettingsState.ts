@@ -1,83 +1,82 @@
-import { Currency } from "@/lib/types";
+import { Currency } from "@/lib/types"
 import { CURRENCIES } from "@/lib/constants"
-import { User } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { create } from "zustand";
-import { db } from "../../firebase";
-import { useCurrencyStore } from "./CurrencyState";
+import { User } from "firebase/auth"
+import { doc, getDoc, setDoc } from "firebase/firestore"
+import { create } from "zustand"
+import { db } from "../../firebase"
+import { useCurrencyStore } from "./CurrencyState"
 
 interface SettingsState {
-    // TODO:
-    // Create some enum or something for the language too
-    // lang: string,
-    // setLang: (newLang: string) => void,
+  // TODO:
+  // Create some enum or something for the language too
+  // lang: string,
+  // setLang: (newLang: string) => void,
 
-    setUserSettings: (baseCurr: Currency, selectedCurr: Currency/*, lang: string*/) => void
-    setDefaultUserSettings: () => void
-    
-    fetchUserSettings: (currentUser: User | null) => void
-    hasFetchedUserSettings: boolean
-    setHasFetchedUserSettings: (val: boolean) => void
+  setDefaultUserSettings: () => void,
+  setUserSettings: (baseCurr: Currency, selectedCurr: Currency/*, lang: string*/) => void,
+
+  fetchUserSettings: (currentUser: User | null) => void,
+  hasFetchedUserSettings: boolean,
+  setHasFetchedUserSettings: (val: boolean) => void
 }
 
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
 
-    // lang: "en",
-    // setLang: (newLang: string) => set({ lang: newLang }),
-    
-    hasFetchedUserSettings: false,
-    setHasFetchedUserSettings: (val) => set({ hasFetchedUserSettings: val}),
+  // lang: "en",
+  // setLang: (newLang: string) => set({ lang: newLang }),
 
-    setDefaultUserSettings: () => {
-        const {setSelectedCurrency, setBaseCurrency} = useCurrencyStore.getState();
+  hasFetchedUserSettings: false,
+  setHasFetchedUserSettings: (val) => set({ hasFetchedUserSettings: val }),
 
-        setBaseCurrency(CURRENCIES.EUR)
-        setSelectedCurrency(CURRENCIES.EUR)
-        // setLang('en')
-    },
+  setDefaultUserSettings: () => {
+    const { setSelectedCurrency, setBaseCurrency } = useCurrencyStore.getState()
 
-    setUserSettings: (baseCurr: Currency, selectedCurr: Currency/*, lang: string*/) => {
-        const {setSelectedCurrency, setBaseCurrency} = useCurrencyStore.getState();
-        setBaseCurrency(baseCurr)
-        setSelectedCurrency(selectedCurr)
-        // setLang(lang)
-        // console.log(`Settings: (baseCurr = ${baseCurr.code}  |  selectedCurr = ${selectedCurr.code})`);
-    },
+    setBaseCurrency(CURRENCIES.EUR)
+    setSelectedCurrency(CURRENCIES.EUR)
+    // setLang('en')
+  },
 
-      // Fetch User App Settings from db
-    fetchUserSettings: async (currentUser: User | null) => { // this fetches all User App Settings
-        const { setUserSettings/*, lang*/, hasFetchedUserSettings, setHasFetchedUserSettings } = get()
-        const {selectedCurrency, baseCurrency} = useCurrencyStore.getState();
+  setUserSettings: (baseCurr: Currency, selectedCurr: Currency/*, lang: string*/) => {
+    const { setSelectedCurrency, setBaseCurrency } = useCurrencyStore.getState()
+    setBaseCurrency(baseCurr)
+    setSelectedCurrency(selectedCurr)
+    // setLang(lang)
+    // console.log(`Settings: (baseCurr = ${baseCurr.code}  |  selectedCurr = ${selectedCurr.code})`);
+  },
 
-        if (!currentUser || hasFetchedUserSettings) return
-        // first check if we already have any settings set
-        try {
-            const userDocRef = doc(db, "users", currentUser.uid)
-            // const userSnap = await getDoc(userDocRef)
-            const userData = (await getDoc(userDocRef)).data()
+  // Fetch/Set User App Settings 
+  fetchUserSettings: async (currentUser: User | null) => { // this fetches all User App Settings
+    const { setUserSettings/*, lang*/, hasFetchedUserSettings, setHasFetchedUserSettings } = get()
+    const { selectedCurrency, baseCurrency } = useCurrencyStore.getState()
 
-            if (userData?.baseCurrency) {
-                // User already have some settings — return them
-                console.log("Settings found:", userData);
-                setUserSettings(userData.baseCurrency, userData.selectedCurrency/*, userData.lang*/)
-            } else {
-                // db save
-                await setDoc(userDocRef, {
-                baseCurrency: baseCurrency,
-                selectedCurrency: selectedCurrency,
-                // lang: lang,
-                });
-                
-                // Local save
-                console.log("New settings saved");
-                setUserSettings(baseCurrency, selectedCurrency/*, lang*/)
-            }
+    if (!currentUser || hasFetchedUserSettings) return
+    // first check if we already have any settings set
+    try {
+      const userDocRef = doc(db, "users", currentUser.uid)
+      const userData = (await getDoc(userDocRef)).data()
 
-        } catch (error: unknown) {
-            if (error instanceof Error) console.log(error.message)
-        } finally {
-            setHasFetchedUserSettings(true)
-        }
+      if (userData?.baseCurrency) {
+        // User already have some settings — return them
+        // console.log("Settings found:", userData)
+        setUserSettings(userData.baseCurrency, userData.selectedCurrency/*, userData.lang*/)
+      } else {
+        // User doesn't have any settings — save them
+        await setDoc(userDocRef, {
+          baseCurrency: baseCurrency,
+          selectedCurrency: selectedCurrency,
+          // lang: lang,
+        })
+
+        // Local save
+        // console.log("New settings saved")
+        setUserSettings(baseCurrency, selectedCurrency/*, lang*/)
+      }
+
+    } catch (error: unknown) {
+      if (error instanceof Error) { } // console.log(error.message)
+    } finally {
+      setHasFetchedUserSettings(true)
     }
+  }
 }))
