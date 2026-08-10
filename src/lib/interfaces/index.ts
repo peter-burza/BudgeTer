@@ -1,5 +1,5 @@
-import { Category, TrType } from '@/enums'
-import { Currency } from '@/types'
+import { Category, TrType } from '@/lib/enums'
+import { Currency } from '@/lib/types'
 
 export interface Transaction {
   readonly id?: string
@@ -11,7 +11,8 @@ export interface Transaction {
   date: string
   category: Category
   description?: string
-  exchangeRate: number // 1 (baseCurrency) = exchangeRate (origCurrency)
+  exchangeRate: number
+  hasTransactionCompleted: boolean
 }
 
 export interface ExpectingTransaction {

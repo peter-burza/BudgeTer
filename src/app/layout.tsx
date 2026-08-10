@@ -24,11 +24,11 @@ export default function RootLayout({
       <AuthProvider>
         <TransactionsProvider>
           <body className="min-h-screen flex flex-col">
-            <header className="flex flex-col gap-3 p-3 pb-0">
+            <header>
               <TopNav />
             </header>
 
-            <main id="app" className="flex-grow flex flex-col gap-3 p-3 items-center">
+            <main id="app" className="flex flex-grow flex-col justify-start gap-3 p-3 items-center">
               {children}
               <ScreenTracker />
             </main>

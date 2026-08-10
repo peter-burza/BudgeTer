@@ -14,7 +14,7 @@ const ResponsiveHeader: React.FC<ResponsiveHeaderProps> = ({ label, iconClass, s
 
   const header = (iconClass === undefined && symbol === undefined) ?
     label :
-    (screenWidth > 510 ? label : iconHeader)
+    (screenWidth > 600 ? label : iconHeader)
 
   return (
     <>
