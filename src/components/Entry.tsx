@@ -23,7 +23,6 @@ import {
 import { Label } from "@/components/ui/ShadcnComponents/label"
 import { Input } from './ui/ShadcnComponents/input'
 import { Textarea } from './ui/ShadcnComponents/textarea'
-import AccordionComp from './ui/AccordionComp'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/ShadcnComponents/accordion'
 import { useCurrentBalance } from '@/context/CurrentBalance'
 import { useFutureTransactions } from '@/context/FutureTransactions'
@@ -101,11 +100,6 @@ const Entry: React.FC<EntryProps> = ({ isLoading, setIsLoading }) => {
   function handleSetCategory(value: Category): void {
     setCategory(value)
   }
-
-  useEffect(() => {
-    // console.log(category)
-
-  }, [category])
 
   function handleSetDate(value: dayjs.Dayjs): void {
     const dateOnly: string = value.format('YYYY-MM-DD')

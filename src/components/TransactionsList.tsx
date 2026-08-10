@@ -11,10 +11,7 @@ import { User } from 'firebase/auth'
 import { Dispatch, SetStateAction } from 'react'
 
 interface ListProps {
-  // selectedCurrency: Currency
   dateFilteredTransactions: Transaction[]
-  selectedMonth: string
-  selectedYear: string
   resetSignal: number
   deleteTransaction: (deleteTrId: string | undefined, isLoading: boolean, currentUser: User | null, setIsLoading: Dispatch<SetStateAction<boolean>>, updateCurrentBalance: (value: number) => void, updateLedger?: (currency: string, amount: number) => void) => void
   screenWidth: number
@@ -40,7 +37,7 @@ const TransactionsList: React.FC<ListProps> = ({ dateFilteredTransactions, delet
   const { transactions } = useTransactions()
 
   // Filters and sorting state
-  const [typeFilter, setTypeFilter] = useState<boolean | null>(null) // true = TrType.Income, false = TrType.Expense, null = all
+  const [typeFilter, setTypeFilter] = useState<boolean | null>(null) // true = TrType.Expense, false = TrType.Income, null = all
   const [categoryFilter, setCategoryFilter] = useState<Category | null>(null)
 
   // Width ratios for columns

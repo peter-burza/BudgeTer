@@ -2,7 +2,7 @@
 
 import { Transaction } from "@/lib/interfaces"
 import { TrType } from '@/lib/enums'
-import { calculateTotalInCurrency, calculateTotalSimplier, fancyNumber, handleToggle, hasMultipleCurrencies, roundToTwo } from "@/lib"
+import { calculateTotalInCurrency, fancyNumber, handleToggle, hasMultipleCurrencies } from "@/lib"
 import React, { useEffect, useState } from "react"
 import Modal from "./Modal"
 import { useCurrencyStore } from "@/context/CurrencyState"
@@ -53,11 +53,6 @@ const Summary: React.FC<SummaryProps> = ({ dateFilteredTransactions, totalExpens
   // TotalIncome calculation
   useEffect(() => {
     let isCancelled = false
-
-    if (incomeFilteredTransactions.length === 0) {
-      setTotalIncome(0)
-      return
-    }
 
     if (incomeFilteredTransactions.length === 0) {
       setTotalIncome(0)

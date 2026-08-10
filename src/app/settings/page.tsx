@@ -15,6 +15,7 @@ const SettingsPage = () => {
     if (!currentUser) {
         // if no user found - then boot them to the home page cause the settings page is for authenticated users only
         window.location.href = "/";
+        return null;
     }
 
     return (

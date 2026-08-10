@@ -15,7 +15,7 @@ interface SettingsState {
   setDefaultUserSettings: () => void,
   setUserSettings: (baseCurr: Currency, selectedCurr: Currency/*, lang: string*/) => void,
 
-  fetchUserSettings: (currentUser: User | null) => void,
+  fetchUserSettings: (currentUser: User | null) => Promise<void>,
   hasFetchedUserSettings: boolean,
   setHasFetchedUserSettings: (val: boolean) => void
 }

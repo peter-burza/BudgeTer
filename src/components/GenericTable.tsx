@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 'use client'
 
-import React, { useMemo, useState, useEffect, JSX } from 'react'
+import React, { useMemo, useState, JSX } from 'react'
 import ResponsiveHeader from './ui/ResponsiveHeader'
 import Modal from './Modal'
 
@@ -23,8 +21,10 @@ export interface ColumnConfig {
     /** Whether this column can be sorted */
     sortable?: boolean
     /** Function to sort data ascending */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     sortAscending?: (data: any[]) => any[]
     /** Function to sort data descending */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     sortDescending?: (data: any[]) => any[]
     /** Whether this column can filter type (Income/Expense) */
     isTypeFilter?: boolean
@@ -82,6 +82,7 @@ export interface GenericTableProps<T> {
  * - Pagination/expansion controls
  * - Customizable rendering per row
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const GenericTable = React.forwardRef<HTMLDivElement, GenericTableProps<any>>(
     (
         {

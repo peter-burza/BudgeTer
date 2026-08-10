@@ -462,59 +462,57 @@ export async function processExpTransactions(
   currentUser: User | null,
   setTransactions: (updater: (prev: Transaction[]) => Transaction[]) => void,
   updateCurrentBalance: (amount: number) => void,
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setExpTransactions: (updater: ExpectingTransaction[] | ((prev: ExpectingTransaction[]) => ExpectingTransaction[])) => void,
   rates: Rates,
   updateLedger?: (currency: string, amount: number) => void
 ) {
   if (!currentUser) throw new Error('User is not authenticated')
-  // const rates = useCurrencyStore.getState().rates
-  const currentDayOfMonth = dayjs().date()
-  // console.log(expTransactions);
 
-  expTransactions.forEach((expTr) => {
-    // check if the expTr was made for every month till its startAt month
+  const currentDayOfMonth = dayjs().date()
+
+  // Track which expTrs had their processedMonths updated so we can update the store once at the end
+  const processedMonthsUpdates = new Map<string, string[]>()
+
+  for (const expTr of expTransactions) {
     const processedMonths = new Set(expTr.processedMonths)
     const unprocessedMonths = getMissingMonthsForExpTr(expTr.startDate, processedMonths)
+    const newMonthsForThisTr: string[] = []
 
-    if (unprocessedMonths.length > 0) {
-      unprocessedMonths.map((month) => {
-        const fullDate = `${month}-${expTr.payDay.toString().padStart(2, '0')}`
-        saveTransaction(
-          {
-            id: generateRandomUUID(),
-            signature: returnSignature(expTr.origAmount, expTr.type, expTr.category, (expTr.description === undefined ? '' : expTr.description), fullDate, expTr.currency.code),
-            origAmount: expTr.origAmount,
-            baseAmount: expTr.baseAmount,
-            currency: expTr.currency,
-            type: expTr.type,
-            date: fullDate,
-            category: expTr.category,
-            description: `${expTr.description} (added from unprocessedMonths)`,
-            exchangeRate: rates[expTr.currency.code],
-            hasTransactionCompleted: true
-          },
-          currentUser.uid,
-          updateCurrentBalance,
-          setIsLoading,
-          setTransactions,
-          updateLedger
-        )
-        // Add month to the processedMonths array
-        if (expTr.id) {
-          updateExpTransactionField(currentUser.uid, expTr.id, 'processedMonths', month)
-          expTr.processedMonths.push(month)
-          // console.log(month + ' added to processedMonths for expTr (' + expTr.id + ')')
-        } else { } // console.log('expTr.id is not available')
-      })
-      // console.log('expTr (' + expTr.id + ') has been processed for: ' + unprocessedMonths)
+    // Backfill any months that were skipped
+    for (const month of unprocessedMonths) {
+      const fullDate = `${month}-${expTr.payDay.toString().padStart(2, '0')}`
+      await saveTransaction(
+        {
+          id: generateRandomUUID(),
+          signature: returnSignature(expTr.origAmount, expTr.type, expTr.category, (expTr.description === undefined ? '' : expTr.description), fullDate, expTr.currency.code),
+          origAmount: expTr.origAmount,
+          baseAmount: expTr.baseAmount,
+          currency: expTr.currency,
+          type: expTr.type,
+          date: fullDate,
+          category: expTr.category,
+          description: `${expTr.description} (added from unprocessedMonths)`,
+          exchangeRate: rates[expTr.currency.code],
+          hasTransactionCompleted: true
+        },
+        currentUser.uid,
+        updateCurrentBalance,
+        undefined, // do not pass setIsLoading — caller controls loading state for this batch
+        setTransactions,
+        updateLedger
+      )
+      if (expTr.id) {
+        await updateExpTransactionField(currentUser.uid, expTr.id, 'processedMonths', month)
+        newMonthsForThisTr.push(month)
+        processedMonths.add(month)
+      }
     }
 
-    //check if tr has to be processed this month
+    // Process current month if pay day has arrived and not yet processed
     if (currentDayOfMonth >= expTr.payDay && !processedMonths.has(getCurrentDate('YYYY-MM'))) {
-      // save the transaction if it should be processed this month
       const currentDate = getCurrentDate('YYYY-MM-DD')
       const currentMonth = getCurrentDate('YYYY-MM')
-      saveTransaction(
+      await saveTransaction(
         {
           id: generateRandomUUID(),
           signature: returnSignature(expTr.origAmount, expTr.type, expTr.category, (expTr.description === undefined ? '' : expTr.description), currentDate, expTr.currency.code),
@@ -530,18 +528,34 @@ export async function processExpTransactions(
         },
         currentUser.uid,
         updateCurrentBalance,
-        setIsLoading,
+        undefined, // do not pass setIsLoading — caller controls loading state for this batch
         setTransactions,
         updateLedger
       )
-      // Add month to the processedMonths array
       if (expTr.id) {
-        updateExpTransactionField(currentUser.uid, expTr.id, 'processedMonths', currentMonth)
-        expTr.processedMonths.push(currentMonth)
-        // console.log(currentMonth + ' added to processedMonths for expTr (' + expTr.id + ')')
-      } else { } // console.log('expTr.id is not available')
+        await updateExpTransactionField(currentUser.uid, expTr.id, 'processedMonths', currentMonth)
+        newMonthsForThisTr.push(currentMonth)
+      }
     }
-  })
+
+    if (expTr.id && newMonthsForThisTr.length > 0) {
+      processedMonthsUpdates.set(expTr.id, newMonthsForThisTr)
+    }
+  }
+
+  // Update the Zustand store immutably — no direct mutation
+  if (processedMonthsUpdates.size > 0) {
+    setExpTransactions((prev) =>
+      prev.map((expTr) => {
+        const newMonths = expTr.id ? processedMonthsUpdates.get(expTr.id) : undefined
+        if (!newMonths) return expTr
+        return {
+          ...expTr,
+          processedMonths: [...expTr.processedMonths, ...newMonths]
+        }
+      })
+    )
+  }
 }
 
 export function generateRandomUUID() {
@@ -605,7 +619,20 @@ export async function processFutureTransactions(
 
         if (!docSnap.exists()) return // Already processed by another client
 
-        const tr = docSnap.data() as Transaction
+        const raw = docSnap.data()
+        const tr: Transaction = {
+          id: raw.id,
+          signature: raw.signature,
+          origAmount: raw.origAmount,
+          baseAmount: raw.baseAmount,
+          currency: raw.currency,
+          type: raw.type,
+          date: raw.date,
+          category: raw.category,
+          description: raw.description || '',
+          exchangeRate: raw.exchangeRate,
+          hasTransactionCompleted: raw.hasTransactionCompleted ?? true,
+        }
         const trDate = dayjs(tr.date)
 
         // If still future, skip (re-check in case date changed? Unlikely but safe)

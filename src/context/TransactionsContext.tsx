@@ -126,7 +126,20 @@ export default function TransactionsProvider({ children }: { children: ReactNode
         }
 
         // service data
-        const tr = trSnap.data() as Transaction
+        const raw = trSnap.data()
+        const tr: Transaction = {
+          id: raw.id,
+          signature: raw.signature,
+          origAmount: raw.origAmount,
+          baseAmount: raw.baseAmount,
+          currency: raw.currency,
+          type: raw.type,
+          date: raw.date,
+          category: raw.category,
+          description: raw.description || '',
+          exchangeRate: raw.exchangeRate,
+          hasTransactionCompleted: raw.hasTransactionCompleted ?? true,
+        }
         const currBalance = userSnap.data().currentBalance
         const isIncome = tr.type === TrType.Income
         updatedBalance = isIncome ? currBalance - tr.baseAmount : currBalance + tr.baseAmount

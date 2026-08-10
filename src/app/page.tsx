@@ -9,6 +9,7 @@ import { useCurrencyStore } from "@/context/CurrencyState"
 import { useTransactions } from "@/context/TransactionsContext"
 import { processExpTransactions } from "@/lib"
 import { useExpTransactionsStore } from "@/context/ExpTransactionsStore"
+
 import RegistrationReminder from "@/components/ui/RegistrationReminder"
 import CurrentOverview from "@/components/CurrentOverview"
 import { useCurrentBalance } from "@/context/CurrentBalance"
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const updateLedger = useCurrentBalance(state => state.updateLedger)
   const { transactions, setTransactions, saveUnloggedTransactions, fetchTransactions, deleteTransaction } = useTransactions()
   const fetchExpTransactions = useExpTransactionsStore(state => state.fetchExpTransactions)
+  const setExpTransactions = useExpTransactionsStore(state => state.setExpTransactions)
   const fetchFutureTransactions = useFutureTransactions(state => state.fetchFutureTransactions)
   const rates = useCurrencyStore((state) => state.rates)
   const selectedCurrency = useCurrencyStore((state) => state.selectedCurrency)
@@ -39,9 +41,11 @@ export default function Dashboard() {
     async function fetchAll() {
       setIsLoading(true)
       try {
-        fetchUserSettings(currentUser)
-        // 1. First ensure user balance is fetched/initialized in DB
-        await fetchCurrentBalance(currentUser)
+        // 1. Fetch user settings and balance in parallel — neither depends on the other
+        await Promise.all([
+          fetchUserSettings(currentUser),
+          fetchCurrentBalance(currentUser),
+        ])
 
         if (isCancelled) return
 
@@ -67,7 +71,7 @@ export default function Dashboard() {
           currentUser,
           setTransactions,
           updateCurrentBalance,
-          setIsLoading,
+          setExpTransactions,
           rates,
           updateLedger
         )

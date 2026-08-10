@@ -193,8 +193,6 @@ const BudgetOverview: React.FC<BudgetOverviewProps> = ({ transactions, selectedC
             <TransactionsList
               dateFilteredTransactions={dateFilteredTransactions}
               deleteTransaction={deleteTransaction}
-              selectedMonth={selectedMonth}
-              selectedYear={selectedYear}
               resetSignal={resetSignal}
               screenWidth={screenWidth}
               isLoading={isLoading}

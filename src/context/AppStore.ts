@@ -5,7 +5,7 @@ interface AppStoreProps {
   setScreenWidth: (newScreenWidth: number) => void
 }
 
-export const useAppStore = create<AppStoreProps>((set, get) => ({
+export const useAppStore = create<AppStoreProps>((set) => ({
   screenWidth: 0,
   setScreenWidth: (newScreenWidth) => set({ screenWidth: newScreenWidth }),
 }))

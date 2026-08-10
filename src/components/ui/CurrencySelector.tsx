@@ -17,7 +17,7 @@ const CurrencySelector: React.FC = () => {
         //db save
         if (currentUser) {
             const userRef = doc(db, 'users', currentUser.uid)
-            updateDoc(userRef, {
+            await updateDoc(userRef, {
                 selectedCurrency: CURRENCIES[selectedCurrCode]
             })
         }

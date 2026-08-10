@@ -66,7 +66,7 @@ export const useCurrencyStore = create<CurrencyState>((set, get) => ({
       return convertedAmount
     } catch (error) {
       console.error('Conversion failed:', error)
-      return 10
+      return amount
     }
   }
 

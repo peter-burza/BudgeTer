@@ -29,7 +29,7 @@ const ExpTransactions = () => {
   const { screenWidth } = useAppStore()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [typeFilter, setTypeFilter] = useState<boolean | null>(null) // true = TrType.Income, false = TrType.Expense, null = all
+  const [typeFilter, setTypeFilter] = useState<boolean | null>(null) // true = TrType.Expense, false = TrType.Income, null = all
   const [categoryFilter, setCategoryFilter] = useState<Category | null>(null)
   const [showAddExpectingTR, setShowAddExpectingTR] = useState<boolean>(false)
 
@@ -144,7 +144,7 @@ const ExpTransactions = () => {
     try {
       setIsLoading(true)
       const trRef = doc(db, "users", currentUser?.uid, "expTransactions", newTr.id)
-      const savingTransactionOnDb = await setDoc(trRef, newTr)
+      await setDoc(trRef, newTr)
       setExpTransactions((prev) => [...prev, newTr])
       // console.log('Expecting transaction (id: ' + newTr.id + ') added successfully')
     } catch (error: unknown) {
@@ -166,7 +166,7 @@ const ExpTransactions = () => {
       setIsLoading(true)
 
       const transactionRef = doc(db, "users", currentUser?.uid, "expTransactions", deleteTrId)
-      const removingTr = await deleteDoc(transactionRef)
+      await deleteDoc(transactionRef)
 
       const updatedTransactions = expTransactions.filter(t => (t.id !== deleteTrId))
       setExpTransactions(updatedTransactions)

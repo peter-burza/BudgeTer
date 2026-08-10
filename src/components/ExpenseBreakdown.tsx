@@ -20,10 +20,10 @@ interface ExpenseBreakdownProps {
 }
 
 function sortTotalHighFirst(list: CategorySummary[]): CategorySummary[] {
-  return [...list].sort((a, b) => new Date(b.total).getTime() - new Date(a.total).getTime())
+  return [...list].sort((a, b) => b.total - a.total)
 }
 function sortTotalLowFirst(list: CategorySummary[]): CategorySummary[] {
-  return [...list].sort((a, b) => new Date(a.total).getTime() - new Date(b.total).getTime())
+  return [...list].sort((a, b) => a.total - b.total)
 }
 
 const ExpenseBreakdown: React.FC<ExpenseBreakdownProps> = ({ dateFilteredTransactions, screenWidth, selectedCurrency, totalExpense, isLoading }) => {
